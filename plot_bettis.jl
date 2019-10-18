@@ -1,5 +1,6 @@
 using Plots
 using Eirene
+include("save_figurers.jl")
 
 """
 Uses betticurve function to generate range of Betti curves.
@@ -48,17 +49,14 @@ returns handler for figure. Optionally, saves the figure or normalise the
     horizontal axis to maximal value
 """
 function plot_and_save_bettis(eirene_results, plot_title,
-                               results_path;
+                               data_size, results_path;
                                do_save=true, do_normalise=true, max_dim=3)
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
     plot_ref = plot_bettis(bettis, plot_title);
 
     if do_save
-        current_path = pwd()
-        cd(results_path)
         savefig(plot_ref, "betti_curves_"*plot_title*data_size*".png")
-        cd(current_path)
     end
     return plot_ref
 end
