@@ -1,6 +1,20 @@
 using Plots
 using Eirene
 include("save_figures.jl")
+using Measures
+
+
+
+# Source: https://github.com/JuliaPlots/Plots.jl/issues/897
+function set_default_plotting_params(;upscale=2)
+    #8x upscaling in resolution
+    fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
+    fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
+    default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
+    default(size=(800*upscale,600*upscale)) #Plot canvas size
+    default(dpi=500) #Only for PyPlot - presently broken
+end
+
 
 """
 Uses betticurve function to generate range of Betti curves.
@@ -35,7 +49,9 @@ end
 """
 Creates a plot for set of betti numbers.
 """
-function plot_bettis(bettis, plot_title)
+function plot_bettis(bettis, plot_title; plot_size = (width=1200, height=800),
+                                                                base_dpi = 500)
+    set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
     colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
 
@@ -44,7 +60,9 @@ function plot_bettis(bettis, plot_title)
     plot_ref = plot(title=final_title);
     max_dim = size(bettis)[1]
     for p = 1:(max_dim)
-        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1), lc=colors_set[p]);
+        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
+                                            # size=plot_size, dpi = base_dpi,
+                                                margin=30mm,   lc=colors_set[p]);
     end
     ylabel!("Number of cycles")
     return plot_ref
@@ -56,8 +74,8 @@ Plot Betti curves from 0 up to max_dim using results from Eirene library and
 returns handler for figure. Optionally, saves the figure or normalise the
     horizontal axis to maximal value
 """
-function plot_and_save_bettis(eirene_results, plot_title,
-                               data_size, results_path;
+function plot_and_save_bettis(eirene_results, plot_title::String,
+                                results_path::String;data_size::String="",
                                do_save=true, do_normalise=true, max_dim=3)
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
