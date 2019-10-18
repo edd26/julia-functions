@@ -46,7 +46,7 @@ function dotted_plane(scene, framenumber)
 end
 
 """
-Function for background.
+Function for setting background.
 """
 function backdrop(scene, framenumber)
     background("white")
@@ -60,6 +60,6 @@ The load function is he FileIO function, but its possibilities are enchanced by
     the ImageMagic package. ImageMagic should not be loaded to project- it is
     handled by FileIO.
 """
-function load_gif_to_array(fullpath)
+function load_gif_to_array(path, gif_name)
     return img = load(path*gif_name)
 end
