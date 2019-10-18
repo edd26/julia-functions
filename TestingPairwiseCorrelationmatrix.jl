@@ -6,14 +6,7 @@ include("MatrixToolbox.jl")
 include("Settings.jl")
 
 
-function saving_figures(ref, path, choice, points_per_dim, tau, size_limiter)
-    name = split(choice, ".")[1]
-    name =  path * name *
-            "_size$(size_limiter)_points$(points_per_dim)_tau$(tau).png"
-    savefig(ref, name)
 
-    @info "File saved: " name
-end
 
 function  plot_eirene_betti_curves(C, C_ij)
     betti_0 = betticurve(C, dim=0)
