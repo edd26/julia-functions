@@ -2,10 +2,11 @@
 entries representing order of values within all matrix"""
 function get_ordered_matrix(symmetric_matrix)
     data_copy = copy(symmetric_matrix)
-    data_copy .+= findmin(data_copy)[1]
-    # data_copy ./= findmax(data_copy)[1]
-    ordered_matrix = zeros(Int, size(data_copy)) .+2
+    data_copy .+= abs(findmin(data_copy)[1])
+    data_copy ./= abs(findmax(data_copy)[1])
+    ordered_matrix = zeros(Int, size(data_copy))
 
+    # repetitions is equal to number of elements above diagonal= (n*(n-2))/2
     repetitions = ceil((size(data_copy)[1] * (size(data_copy)[1]-1))/2)
     for k=1:repetitions
         value, index = findmax(data_copy)
@@ -18,7 +19,7 @@ function get_ordered_matrix(symmetric_matrix)
     # findmax(ordered_matrix)
     @info "Original maximal value was at position: " (findmax(symmetric_matrix)[2])
 
-    @info "After ordering the maximal value is at position: " (findmax(ordered_matrix)[2])
+    @info "After ordering the first index value is at position: " (findmax(ordered_matrix)[2])
 
     return ordered_matrix
 end
