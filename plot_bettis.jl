@@ -41,11 +41,11 @@ function plot_bettis(bettis, plot_title)
 
     final_title = "Eirene betti curves, "*plot_title*" data, size "
 
-   plot_ref = plot(title=final_title);
-   max_dim = size(bettis)[1]
-   for p = 1:(max_dim)
-       plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1), lc=colors_set[p]);
-   end
+    plot_ref = plot(title=final_title);
+    max_dim = size(bettis)[1]
+    for p = 1:(max_dim)
+        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1), lc=colors_set[p]);
+    end
     ylabel!("Number of cycles")
     return plot_ref
 end
@@ -73,23 +73,21 @@ end
 """
 Plots Set of betti numbers at the same graph as well as each of them separatelay.
 """
-function plot_decomposed_bettis(topology_res, dataset_name)
-    betticurve(topology_res, dim=0)
-    betti_1 = betticurve(topology_res, dim=1)
-    betti_2 = betticurve(topology_res, dim=2)
-    betti_3 = betticurve(topology_res, dim=3)
+function plot_decomposed_bettis(results_eirene, dataset_name)
+    max_dim = 3;
+    bettis = get_bettis(results_eirene, max_dim)
 
     # p0 = plot(betti_0[:,1], betti_0[:,2], label="\\beta_0", linecolor=:blue); #, ylims = (0,maxy)
-    p1 = plot(betti_1[:,1], betti_1[:,2], label="\\beta_1",
+    p1 = plot(bettis[1][:,1], bettis[1][:,2], label="\\beta_"*string(1),
                                         linecolor=:orange, legend=:topleft);
-    p2 = plot(betti_2[:,1], betti_2[:,2], label="\\beta_2",
+    p2 = plot(bettis[2][:,1], bettis[2][:,2], label="\\beta_"*string(1),
                                         linecolor=:red, legend=:topleft);
-    p3 = plot(betti_3[:,1], betti_3[:,2], label="\\beta_3",
+    p3 = plot(bettis[3][:,1], bettis[3][:,2], label="\\beta_"*string(1),
                                         linecolor=:steelblue, legend=:topleft);
 
-    p0 = plot(betti_1[:,1], betti_1[:,2], label="\\beta_1", linecolor=:orange,
+    p0 = plot(bettis[1][:,1], bettis[1][:,2], label="\\beta_1", linecolor=:orange,
         legend=:topleft, title="All Bettis for "*dataset_name*" data, Eirene");
-    plot!(betti_2[:,1], betti_2[:,2], label="\\beta_2", linecolor=:red);
-    plot!(betti_3[:,1], betti_3[:,2], label="\\beta_3", linecolor=:steelblue);
+    plot!(bettis[2][:,1], bettis[2][:,2], label="\\beta_2", linecolor=:red);
+    plot!(bettis[3][:,1], bettis[3][:,2], label="\\beta_3", linecolor=:steelblue);
     return plot_ref = plot(p0, p1, p2, p3, layout=4)
 end
