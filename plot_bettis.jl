@@ -1,13 +1,14 @@
 using Plots
 using Eirene
-include("save_figurers.jl")
+include("save_figures.jl")
 
 """
 Uses betticurve function to generate range of Betti curves.
 """
 function get_bettis(results_eirene, max_dim)
+    bettis  = Matrix{Float64}[]
     for d =1:(max_dim+1)
-        result = betticurve(eirene_results, dim=d-1)
+        result = betticurve(results_eirene, dim=d-1)
         push!(bettis, result)
     end
     return bettis
@@ -18,9 +19,15 @@ Normalise the horizontal values of the Eirene betti numbers.
 """
 function normalise_bettis(bettis)
     norm_bettis = copy(bettis)
+    @debug "norm_bettis size :" size(norm_bettis)[1][1]
 
-    if !isempty(norm_bettis[d])
-        norm_bettis[d][:,1] /= findmax(norm_bettis[d][:,1])[1]
+    max_dim = size(norm_bettis)[1]
+    @debug "typeof(max_dim) :" typeof(max_dim[1])
+
+    for d =1:(max_dim)
+        if !isempty(norm_bettis[d])
+            norm_bettis[d][:,1] /= findmax(norm_bettis[d][:,1])[1]
+        end
     end
     return norm_bettis
 end
@@ -35,7 +42,8 @@ function plot_bettis(bettis, plot_title)
     final_title = "Eirene betti curves, "*plot_title*" data, size "
 
    plot_ref = plot(title=final_title);
-   for p = 1:(max_dim+1)
+   max_dim = size(bettis)[1]
+   for p = 1:(max_dim)
        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1), lc=colors_set[p]);
    end
     ylabel!("Number of cycles")
