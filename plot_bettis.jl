@@ -62,7 +62,8 @@ function plot_bettis(bettis, plot_title)#; plot_size = (width=1200, height=800),
     for p = 1:(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
                                             # size=plot_size, dpi = base_dpi,
-                                                margin=30mm,   lc=colors_set[p]);
+                                                # margin=30mm, 
+                                                  lc=colors_set[p]);
     end
     ylabel!("Number of cycles")
     return plot_ref
