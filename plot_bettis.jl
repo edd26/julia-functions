@@ -51,7 +51,7 @@ Creates a plot for set of betti numbers.
 """
 function plot_bettis(bettis, plot_title)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
-    set_default_plotting_params()
+    # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
     colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
 
