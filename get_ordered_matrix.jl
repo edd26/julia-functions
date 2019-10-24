@@ -9,6 +9,7 @@ function get_ordered_matrix(symmetric_matrix)
         symetry_order = true
     else
         symetry_order = false
+        @warn "Doing non-symetric ordering"
     end
     # data_copy .+= abs(findmin(data_copy)[1])
     # data_copy ./= abs(findmax(data_copy)[1])
@@ -29,7 +30,8 @@ function get_ordered_matrix(symmetric_matrix)
     # ordered_matrix .*= (-1)
     # findmax(ordered_matrix)
     @info "Original maximal value was at position: " (findmax(symmetric_matrix)[2])
-    @info "After ordering the first index value is at position: " (findmax(ordered_matrix)[2])
+    @info "After ordering the first index value is at position: " (findall(x->x==1,ordered_matrix)[1])
+    @info "\n"
 
     return ordered_matrix
 end
