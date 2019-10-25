@@ -62,7 +62,7 @@ function plot_bettis(bettis, plot_title)#; plot_size = (width=1200, height=800),
     for p = 1:(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
                                             # size=plot_size, dpi = base_dpi,
-                                                # margin=30mm, 
+                                                # margin=30mm,
                                                   lc=colors_set[p]);
     end
     ylabel!("Number of cycles")
@@ -109,4 +109,54 @@ function plot_decomposed_bettis(results_eirene, dataset_name)
     plot!(bettis[2][:,1], bettis[2][:,2], label="\\beta_2", linecolor=:red);
     plot!(bettis[3][:,1], bettis[3][:,2], label="\\beta_3", linecolor=:steelblue);
     return plot_ref = plot(p0, p1, p2, p3, layout=4)
+end
+
+
+
+
+"""
+Takes a vector of betti vectors and computes the average betti curve
+"""
+function average_bettis_2(arrs; maxdim=-1)
+    number_of_betti_sets = size(arrs,1)
+    if number_of_betti_sets == 1
+        return arrs
+    end
+    maxdim = max_dim
+    md = maxdim
+    if maxdim == -1
+        md = size(arrs[1],2)
+    end
+    numofints = size(arrs[1][1],1)
+    av_bet = zeros(numofints,md)
+    additional_matrix = zeros(numofints, number_of_betti_sets)
+
+    for m = 1:maxdim
+        for nb = 1:number_of_betti_sets
+            additional_matrix[:, nb] = arrs[nb][m][:,2]
+        end
+        av_bet[:,m] = mean(additional_matrix, dims = 2)
+    end
+
+    return av_bet
+end
+
+
+function average_bettis_3(arrs; maxdim=-1)
+    if size(arrs,1) == 1
+        return arrs
+    end
+    md = maxdim
+    if maxdim == -1
+        md = size(arrs[1],2)
+    end
+    numofints = size(arrs,3)
+    av_bet = zeros(numofints,md)
+
+    for i=1:numofints
+        for d=1:md
+            av_bet[i,d] = mean([arrs[:,d,i][1]])
+        end
+    end
+    return av_bet
 end
