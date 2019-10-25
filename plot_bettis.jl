@@ -49,21 +49,25 @@ end
 """
 Creates a plot for set of betti numbers.
 """
-function plot_bettis(bettis, plot_title)#; plot_size = (width=1200, height=800),
+function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
     colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
 
-    final_title = "Eirene betti curves, "*plot_title*" data, size "
+    final_title = "Eirene betti curves, "*plot_title
 
     plot_ref = plot(title=final_title);
     max_dim = size(bettis)[1]
     for p = 1:(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
-                                            # size=plot_size, dpi = base_dpi,
-                                                # margin=30mm,
-                                                  lc=colors_set[p]);
+                                                    lc=colors_set[p]);
+        if legend_on
+            plot!(legend=true)
+        else
+            plot!(legend=false)
+        end
+
     end
     ylabel!("Number of cycles")
     return plot_ref
@@ -77,13 +81,16 @@ returns handler for figure. Optionally, saves the figure or normalise the
 """
 function plot_and_save_bettis(eirene_results, plot_title::String,
                                 results_path::String;data_size::String="",
-                               do_save=true, do_normalise=true, max_dim=3)
+                               do_save=true, do_normalise=true, max_dim=3,
+                               legend_on=true)
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
-    plot_ref = plot_bettis(bettis, plot_title);
+    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on);
 
     if do_save
         savefig(plot_ref, "betti_curves_"*plot_title*data_size*".png")
+        @info "Saved file!"
+
     end
     return plot_ref
 end
@@ -152,11 +159,38 @@ function average_bettis_3(arrs; maxdim=-1)
     end
     numofints = size(arrs,3)
     av_bet = zeros(numofints,md)
+    # std_bet = zeros(numofints,md)
 
     for i=1:numofints
         for d=1:md
             av_bet[i,d] = mean([arrs[:,d,i][1]])
+            # std_bet[i,d] = std([arrs[:,d,i][1]])
         end
     end
-    return av_bet
+    return av_bet#, std_bet
+end
+
+
+
+"""
+Creates a plot for set of betti numbers.
+"""
+function plot_avg_bettis2(bettis, plot_title)#; plot_size = (width=1200, height=800),
+                                        #                        base_dpi = 500)
+    # set_default_plotting_params()
+    cur_colors = get_color_palette(:auto, plot_color(:white), 17)
+    colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
+
+    final_title = "Eirene betti curves, "*plot_title*" data, size "
+
+    plot_ref = plot(title=final_title);
+    max_dim = size(bettis)[1]
+    for p = 1:(max_dim)
+        plot!(bettis[p][:,2], label="\\beta_"*string(p-1),
+                                            # size=plot_size, dpi = base_dpi,
+                                                # margin=30mm,
+                                                  lc=colors_set[p]);
+    end
+    ylabel!("Number of cycles")
+    return plot_ref
 end
