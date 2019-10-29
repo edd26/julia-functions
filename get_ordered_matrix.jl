@@ -21,6 +21,7 @@ julia> get_ordered_matrix(a)
 ```
 """
 function get_ordered_matrix(input_matrix)
+    input_matrix = matrix_set[m][1:5,1:5]
     data_copy = copy(input_matrix)
     if issymmetric(data_copy)
         symetry_order = true
@@ -33,17 +34,26 @@ function get_ordered_matrix(input_matrix)
     ordered_matrix = zeros(Int, size(data_copy))
     min_value = -Inf
 
-    # repetitions is equal to number of elements above diagonal= (n*(n-2))/2
+    # ====
+    # Sorting instead of subsequent findmax
+    # Get all cartesian indices to be sorted
+    ordered_matrix_new = zeros(Int, size(data_copy))
+    upper_indices = findall(x->x>0, UpperTriangular(data_copy))
+
+    # Get all values above diagonal
+    upper_values = data_copy[upper_indices]
+
+    # Sort indices by values
+    order = sort!([1:size(upper_indices,1);], by=i->(upper_values[i],upper_indices[i]), rev=true)
+
+    # Put evrything together
     repetitions = Int(ceil((size(data_copy)[1] * (size(data_copy)[1]-1))/2))
     for k=1:repetitions
-        value, index = findmax(data_copy)
-        data_copy[index[1], index[2]] = min_value
-        data_copy[index[2], index[1]] = min_value
-        ordered_matrix[index[1], index[2]] = k
-        if symetry_order
-            ordered_matrix[index[2], index[1]] = k
-        end
+        next_position = order[k]
+        ordered_matrix_new[upper_indices[next_position]] = k
+        ordered_matrix_new[upper_indices[next_position][2], upper_indices[next_position][1]] = k
     end
+    # ====
     # ordered_matrix .*= (-1)
     # findmax(ordered_matrix)
     @info "Original maximal value was at position: " (findmax(input_matrix)[2])
