@@ -21,7 +21,6 @@ julia> get_ordered_matrix(a)
 ```
 """
 function get_ordered_matrix(input_matrix)
-    input_matrix = matrix_set[m]
     data_copy = copy(input_matrix)
     if issymmetric(data_copy)
         symetry_order = true
