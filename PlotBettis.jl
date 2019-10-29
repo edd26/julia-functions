@@ -6,7 +6,7 @@ using Measures
 
 
 # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
-function set_default_plotting_params(;upscale=2)
+function setdefaultplottingparams(;upscale=2)
     #8x upscaling in resolution
     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
@@ -17,9 +17,11 @@ end
 
 
 """
-Uses betticurve function to generate range of Betti curves.
+	getbettis(results_eirene, max_dim)
+
+Uses betticurve function to generate Betti curves up to `max_dim` diemsion from the `results_eirene` dictionary.
 """
-function get_bettis(results_eirene, max_dim)
+function getbettis(results_eirene<:Dict, max_dim)
     bettis  = Matrix{Float64}[]
     for d =1:(max_dim+1)
         result = betticurve(results_eirene, dim=d-1)
@@ -29,9 +31,11 @@ function get_bettis(results_eirene, max_dim)
 end
 
 """
-Normalise the horizontal values of the Eirene betti numbers.
+	normalisebettis(bettis)
+
+Normalise the number of steps for every Eirene betti number in 'bettis' variable. 
 """
-function normalise_bettis(bettis)
+function normalisebettis(bettis)
     norm_bettis = copy(bettis)
     @debug "norm_bettis size :" size(norm_bettis)[1][1]
 
@@ -47,9 +51,12 @@ function normalise_bettis(bettis)
 end
 
 """
-Creates a plot for set of betti numbers.
+	plotbettis(bettis, plot_title; legend_on=true)
+
+Creates a plot for set of betti numbers stored in `bettis`.
+`plot_title` is used for the title of the plot.
 """
-function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
+function plotbettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
@@ -75,12 +82,19 @@ end
 
 
 """
-Plot Betti curves from 0 up to max_dim using results from Eirene library and
-returns handler for figure. Optionally, saves the figure or normalise the
-    horizontal axis to maximal value
+
+	plot_and_save_bettis(eirene_results, plot_title::String,
+								results_path::String; data_size::String="",
+                               do_save=true, do_normalise=true, max_dim=3,
+                               legend_on=true)
+	
+Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
+returns handler for figure. Optionally, if `do_save` is set, saves the figure 
+or if `do_normalise` is set, sets the steps range to be normalised to the
+horizontal axis maximal value.
 """
 function plot_and_save_bettis(eirene_results, plot_title::String,
-                                results_path::String;data_size::String="",
+								results_path::String; data_size::String="",
                                do_save=true, do_normalise=true, max_dim=3,
                                legend_on=true)
     bettis = get_bettis(eirene_results, max_dim);
@@ -99,7 +113,7 @@ end
 """
 Plots Set of betti numbers at the same graph as well as each of them separatelay.
 """
-function plot_decomposed_bettis(results_eirene, dataset_name)
+function plotdecomposed_bettis(results_eirene, dataset_name)
     max_dim = 3;
     bettis = get_bettis(results_eirene, max_dim)
 
@@ -124,7 +138,7 @@ end
 """
 Takes a vector of betti vectors and computes the average betti curve
 """
-function average_bettis_2(arrs; maxdim=-1)
+function averagebettis2(arrs; maxdim=-1)
     number_of_betti_sets = size(arrs,1)
     if number_of_betti_sets == 1
         return arrs
@@ -149,7 +163,7 @@ function average_bettis_2(arrs; maxdim=-1)
 end
 
 
-function average_bettis_3(arrs; maxdim=-1)
+function averagebettis3(arrs; maxdim=-1)
     if size(arrs,1) == 1
         return arrs
     end
@@ -175,7 +189,7 @@ end
 """
 Creates a plot for set of betti numbers.
 """
-function plot_avg_bettis2(bettis, plot_title)#; plot_size = (width=1200, height=800),
+function plotavgbettis2(bettis, plot_title)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
