@@ -43,21 +43,20 @@ function get_ordered_matrix(input_matrix)
     upper_values = data_copy[upper_indices]
 
     # Sort indices by values
-    order = sort!([1:size(upper_indices,1);], by=i->(upper_values[i],upper_indices[i]), rev=true)
+    ordered_indices = sort!([1:size(upper_indices,1);], by=i->(upper_values[i],upper_indices[i]), rev=true)
 
     # Put evrything together
     repetitions = Int(ceil((size(data_copy)[1] * (size(data_copy)[1]-1))/2))
     for k=1:repetitions
-        next_position = order[k]
+        next_position = ordered_indices[k]
         ordered_matrix_new[upper_indices[next_position]] = k
         ordered_matrix_new[upper_indices[next_position][2], upper_indices[next_position][1]] = k
     end
-    # ====
-    # ordered_matrix .*= (-1)
-    # findmax(ordered_matrix)
-    @info "Original maximal value was at position: " (findmax(input_matrix)[2])
-    @info "After ordering the first index value is at position: " (findall(x->x==1,ordered_matrix)[1])
-    @info "\n"
 
-    return ordered_matrix
+    # ====
+    max_orig = (findmax(input_matrix)[2])
+    max_new = (findall(x->x==1,ordered_matrix_new)[1])
+    @debug "Original maximal value was at position: " max_orig
+    @debug "After ordering the first index value is at position: " max_new
+    return ordered_matrix_new
 end
