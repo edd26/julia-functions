@@ -1,7 +1,7 @@
 using Plots
 using Eirene
 using Measures
-
+include("MatrixProcessing.jl")
 
 
 # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
@@ -262,7 +262,7 @@ function get_avg_bettis_from_JLD(data_sets; range=-1,
         end
 
         # Set size to be the same for every betti curve
-        new_bettis_set = reduce_to_min_len(bettis_set)
+        new_bettis_set = reduce_arrs_to_min_len(bettis_set)
 
         # Compute average betti curve
         push!(avg_betti, average_bettis(new_bettis_set))
