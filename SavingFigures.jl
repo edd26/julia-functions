@@ -16,8 +16,8 @@ end
 """
 Save figures.
 """
-function save_figure(plot_ref, results_path, plot_title; extention=".png" )
-    full_path = results_path*plot_title*extention
+function save_figure(plot_ref, results_path, plot_title; extension=".png" )
+    full_path = results_path*plot_title*extension
     savefig(plot_ref, full_path)
     @info "File saved under: " full_path
 end
