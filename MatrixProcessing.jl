@@ -80,9 +80,9 @@ function get_ordered_matrix(input_matrix)
     # ====
     # Get all cartesian indices to be sorted
         if symetry_order
-        matrix_indices = findall(x->x>0, UpperTriangular(data_copy))
+        matrix_indices = findall(x->x!=0, UpperTriangular(data_copy))
     else
-        matrix_indices = findall(x->x>0, data_copy)
+        matrix_indices = findall(x->x!=0, data_copy)
     end
 
     # Get all values which will be sorted
