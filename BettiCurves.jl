@@ -84,11 +84,11 @@ end
 
 
 """
-
 	plot_and_save_bettis(eirene_results, plot_title::String,
-								results_path::String; data_size::String="",
-                               do_save=true, do_normalise=true, max_dim=3,
-                               legend_on=true)
+								results_path::String; extension = ".png",
+								data_size::String="", do_save=true,
+								extend_title=true, do_normalise=true, max_dim=3,
+								legend_on=true)
 
 Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
 returns handler for figure. Optionally, if `do_save` is set, saves the figure
@@ -96,16 +96,23 @@ or if `do_normalise` is set, sets the steps range to be normalised to the
 horizontal axis maximal value.
 """
 function plot_and_save_bettis(eirene_results, plot_title::String,
-								results_path::String; data_size::String="",
-                               do_save=true, do_normalise=true, max_dim=3,
-                               legend_on=true)
+								results_path::String; extension = ".png",
+								data_size::String="", do_save=true,
+								extend_title=true, do_normalise=true, max_dim=3,
+								legend_on=true)
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
     plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on);
 
     if do_save
-        savefig(plot_ref, "betti_curves_"*plot_title*data_size*".png")
-        @info "Saved file!"
+		if extend_title
+			file_name = "betti_c_"*plot_title*data_size*".png";
+		else
+			file name = plot_title*".png"
+		end
+
+        savefig(plot_ref, file_name)
+        @info "Saved file as " file_name
 
     end
     return plot_ref
