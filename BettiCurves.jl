@@ -112,8 +112,8 @@ function plot_and_save_bettis(eirene_results, plot_title::String,
 			file_name = plot_title*extension
 		end
 
-        savefig(plot_ref, file_name)
-        @info "Saved file as " file_name
+        savefig(plot_ref, results_path*file_name)
+        @info "Saved file as " results_path*file_name
 
     end
     return plot_ref
