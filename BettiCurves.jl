@@ -140,11 +140,13 @@ end
 
 
 """
+	plot_ebetti_curves_heatmap(C, C_ij)
+
 Plot betti curves obtained from Eirene and the correlation matrix.
 
 Note: Exported from TestingPairwiseCorrelationmatrix.jl
 """
-function plot_eirene_betti_curves(C, C_ij)
+function plot_ebetti_curves_heatmap(C, C_ij)
     betti_0 = betticurve(C, dim=0)
     betti_1 = betticurve(C, dim=1)
     betti_2 = betticurve(C, dim=2)
@@ -158,5 +160,6 @@ function plot_eirene_betti_curves(C, C_ij)
     plot!(betti_2[:,1], betti_2[:,2], label="beta_2")
     plot!(betti_3[:,1], betti_3[:,2], label="beta_3")
 
-    heat_map1 = heatmap(C_ij,  color=:lightrainbow, title="Cij, $(choice), number of points: $points_per_dim");
+    heat_map1 = heatmap(C_ij,  color=:lightrainbow,
+					title="Cij, $(choice), number of points: $points_per_dim");
 end
