@@ -202,3 +202,35 @@ function get_local_correlations(video_array, centers, sub_img_size, shift)
     end
     return extracted_pixels
 end
+
+
+
+"""
+    reduce_arrs_to_min_len(arrs)
+
+Takes vector of vectors of different length and returns array of arrays which
+are of the same length. Length in the output is the shortest vector length from
+the input- values above this size are discarded.
+"""
+function reduce_arrs_to_min_len(arrs)
+    new_arr = copy(arrs)
+
+    simulation = size(new_arr,1)
+    min_size = Inf
+    for m=1:simulation
+        @debug "Simulation number" m
+        current_size = size(new_arr[m],1)
+        @debug "Current size: " current_size
+        if convert(Float64,current_size) < min_size
+            min_size = current_size
+            @debug "min size changed to: " min_size
+        end
+    end
+    # min_size = Int.(min_size)
+    @debug "Concatenating"
+    for m=1:simulation
+        new_arr[m] = new_arr[m][1:min_size,:]
+    end
+    min_size = Inf
+    return new_arr
+end
