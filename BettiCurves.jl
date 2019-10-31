@@ -109,7 +109,7 @@ function plot_and_save_bettis(eirene_results, plot_title::String,
 		if extend_title
 			file_name = "betti_c_"*plot_title*data_size*extension;
 		else
-			file name = plot_title*extension
+			file_name = plot_title*extension
 		end
 
         savefig(plot_ref, file_name)
