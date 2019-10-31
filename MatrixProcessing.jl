@@ -79,8 +79,12 @@ function get_ordered_matrix(input_matrix)
 
     # ====
     # Get all cartesian indices to be sorted
-        if symetry_order
+    if symetry_order
         matrix_indices = findall(x->x!=0, UpperTriangular(data_copy))
+
+        #remove indexes from diagonal
+        non_daigonals = findall(x->x[1]!=x[2], matrix_indices);
+        matrix_indices = matrix_indices[non_daigonals];
     else
         matrix_indices = findall(x->x!=0, data_copy)
     end
