@@ -83,6 +83,8 @@ function get_ordered_matrix(input_matrix)
     matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
     if symetry_order
         matrix_indices = findall(x->x[1]>x[2], matrix_indices)
+    else
+        matrix_indices = findall(x->true, matrix_indices)
     end
 
     # Get all values which will be sorted
@@ -90,12 +92,12 @@ function get_ordered_matrix(input_matrix)
 
     # Sort indices by values (highest to lowest)
     ordered_indices = sort!([1:size(matrix_indices,1);],
-                        by=i->(sorting_values[i],matrix_indices[i]), rev=true)
+                        by=i->(sorting_values[i],matrix_indices[i]))
 
     # Put evrything together
     if symetry_order
         # how many elements are above diagonal
-        repetitions = Int(ceil((size(data_copy)[1] * (size(data_copy)[1]-1))/2))
+        repetitions = Int(ceil((mat_size * (mat_size-1))/2))
     else
         # how many elements are in whole matrix
         repetitions = Int(ceil((size(data_copy)[1] * size(data_copy)[1])))
