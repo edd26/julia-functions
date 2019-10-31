@@ -33,7 +33,7 @@ function normalize_to_01(matrix; norm_factor=256)
     max_val = findmax(normalized_matrix)[1]
 
     if min_val < 0
-        normalized_matrix .-= min_val
+        normalized_matrix .+= abs(min_val)
     end
 
     if max_val > norm_factor
