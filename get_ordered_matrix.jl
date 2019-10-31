@@ -8,7 +8,7 @@ The values of returned matrix represent position in descending ordering of
 of input matrix.
 
 If `input_matrix` is symmetric, then the returned values are ordered above the
-diagonal. Lower diagonal is symetrically copied from values aboce diagonal.
+diagonal. Lower diagonal is symetrically copied from values above diagonal.
 
 # Examples
 ```julia-repl
@@ -22,41 +22,50 @@ julia> get_ordered_matrix(a)
 """
 function get_ordered_matrix(input_matrix)
     data_copy = copy(input_matrix)
+    ordered_matrix = zeros(Int, size(data_copy))
+
     if issymmetric(data_copy)
         symetry_order = true
     else
         symetry_order = false
         @warn "Doing non-symetric ordering"
     end
-    # data_copy .+= abs(findmin(data_copy)[1])
-    # data_copy ./= abs(findmax(data_copy)[1])
-    ordered_matrix = zeros(Int, size(data_copy))
-    min_value = -Inf
 
     # ====
-    # Sorting instead of subsequent findmax
     # Get all cartesian indices to be sorted
-    ordered_matrix_new = zeros(Int, size(data_copy))
-    upper_indices = findall(x->x>0, UpperTriangular(data_copy))
+        if symetry_order
+        matrix_indices = findall(x->x>0, UpperTriangular(data_copy))
+    else
+        matrix_indices = findall(x->x>0, data_copy)
+    end
 
-    # Get all values above diagonal
-    upper_values = data_copy[upper_indices]
+    # Get all values which will be sorted
+    sorting_values = data_copy[matrix_indices]
 
-    # Sort indices by values
-    ordered_indices = sort!([1:size(upper_indices,1);], by=i->(upper_values[i],upper_indices[i]), rev=true)
+    # Sort indices by values (highest to lowest)
+    ordered_indices = sort!([1:size(matrix_indices,1);],
+                        by=i->(sorting_values[i],matrix_indices[i]), rev=true)
 
     # Put evrything together
-    repetitions = Int(ceil((size(data_copy)[1] * (size(data_copy)[1]-1))/2))
+    if symetry_order
+        # how many elements are above diagonal
+        repetitions = Int(ceil((size(data_copy)[1] * (size(data_copy)[1]-1))/2))
+    else
+        # how many elements are in whole matrix
+        repetitions = Int(ceil((size(data_copy)[1] * size(data_copy)[1])))
+    end
+
     for k=1:repetitions
         next_position = ordered_indices[k]
-        ordered_matrix_new[upper_indices[next_position]] = k
-        ordered_matrix_new[upper_indices[next_position][2], upper_indices[next_position][1]] = k
+        matrix_index = matrix_indices[next_position]
+        ordered_matrix[matrix_index] = k
+        ordered_matrix[matrix_index[2], matrix_index[1]] = k
     end
 
     # ====
     max_orig = (findmax(input_matrix)[2])
-    max_new = (findall(x->x==1,ordered_matrix_new)[1])
+    max_new = (findall(x->x==1,ordered_matrix)[1])
     @debug "Original maximal value was at position: " max_orig
     @debug "After ordering the first index value is at position: " max_new
-    return ordered_matrix_new
+    return ordered_matrix
 end
