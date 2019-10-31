@@ -55,7 +55,8 @@ end
 """
 	plot_bettis(bettis, plot_title; legend_on=true)
 
-Creates a plot for set of betti numbers stored in `bettis`.
+Creates a plot for set of betti numbers stored in `bettis` and return the
+handler to the plot.
 `plot_title` is used for the title of the plot.
 """
 function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
