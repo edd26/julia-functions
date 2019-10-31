@@ -68,7 +68,8 @@ julia> get_ordered_matrix(a)
 """
 function get_ordered_matrix(input_matrix)
     data_copy = copy(input_matrix)
-    ordered_matrix = zeros(Int, size(data_copy))
+    mat_size = size(data_copy,1)
+    ordered_matrix = zeros(Int, mat_size)
 
     if issymmetric(data_copy)
         symetry_order = true
@@ -79,14 +80,9 @@ function get_ordered_matrix(input_matrix)
 
     # ====
     # Get all cartesian indices to be sorted
+    matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
     if symetry_order
-        matrix_indices = findall(x->x!=0, UpperTriangular(data_copy))
-
-        #remove indexes from diagonal
-        non_daigonals = findall(x->x[1]!=x[2], matrix_indices);
-        matrix_indices = matrix_indices[non_daigonals];
-    else
-        matrix_indices = findall(x->x!=0, data_copy)
+        matrix_indices = findall(x->x[1]>x[2], matrix_indices)
     end
 
     # Get all values which will be sorted
