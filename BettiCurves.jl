@@ -21,7 +21,7 @@ end
 Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
 the `results_eirene` dictionary.
 """
-function get_bettis(results_eirene<:Dict, max_dim<:Int)
+function get_bettis(results_eirene::Dict, max_dim::Integer)
     bettis  = Matrix{Float64}[]
     for d =1:(max_dim+1)
         result = betticurve(results_eirene, dim=d-1)
