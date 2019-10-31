@@ -33,7 +33,7 @@ end
 """
 	normalisebettis(bettis)
 
-Normalise the number of steps for every Eirene betti number in 'bettis' variable. 
+Normalise the number of steps for every Eirene betti number in 'bettis' variable.
 """
 function normalisebettis(bettis)
     norm_bettis = copy(bettis)
@@ -87,9 +87,9 @@ end
 								results_path::String; data_size::String="",
                                do_save=true, do_normalise=true, max_dim=3,
                                legend_on=true)
-	
+
 Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
-returns handler for figure. Optionally, if `do_save` is set, saves the figure 
+returns handler for figure. Optionally, if `do_save` is set, saves the figure
 or if `do_normalise` is set, sets the steps range to be normalised to the
 horizontal axis maximal value.
 """
@@ -111,9 +111,12 @@ end
 
 
 """
-Plots Set of betti numbers at the same graph as well as each of them separatelay.
+	plotdecomposedbettis(results_eirene, dataset_name)
+
+Plots betti curves 0 up to 3 at the same plot. Beside, betti curves 1 to 3 are
+plotted separately, in 3 additional plots at the same graph.
 """
-function plotdecomposed_bettis(results_eirene, dataset_name)
+function plotdecomposedbettis(results_eirene, dataset_name)
     max_dim = 3;
     bettis = get_bettis(results_eirene, max_dim)
 
