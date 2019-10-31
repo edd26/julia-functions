@@ -17,11 +17,12 @@ end
 
 
 """
-	getbettis(results_eirene, max_dim)
+	get_bettis(results_eirene, max_dim)
 
-Uses betticurve function to generate Betti curves up to `max_dim` diemsion from the `results_eirene` dictionary.
+Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
+the `results_eirene` dictionary.
 """
-function getbettis(results_eirene<:Dict, max_dim)
+function get_bettis(results_eirene<:Dict, max_dim<:Int)
     bettis  = Matrix{Float64}[]
     for d =1:(max_dim+1)
         result = betticurve(results_eirene, dim=d-1)
@@ -30,12 +31,13 @@ function getbettis(results_eirene<:Dict, max_dim)
     return bettis
 end
 
+
 """
-	normalisebettis(bettis)
+	normalise_bettis(bettis)
 
 Normalise the number of steps for every Eirene betti number in 'bettis' variable.
 """
-function normalisebettis(bettis)
+function normalise_bettis(bettis)
     norm_bettis = copy(bettis)
     @debug "norm_bettis size :" size(norm_bettis)[1][1]
 
@@ -50,13 +52,14 @@ function normalisebettis(bettis)
     return norm_bettis
 end
 
+
 """
-	plotbettis(bettis, plot_title; legend_on=true)
+	plot_bettis(bettis, plot_title; legend_on=true)
 
 Creates a plot for set of betti numbers stored in `bettis`.
 `plot_title` is used for the title of the plot.
 """
-function plotbettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
+function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
@@ -111,12 +114,12 @@ end
 
 
 """
-	plotdecomposedbettis(results_eirene, dataset_name)
+	plot_decomposed_bettis(results_eirene, dataset_name)
 
 Plots betti curves 0 up to 3 at the same plot. Beside, betti curves 1 to 3 are
 plotted separately, in 3 additional plots at the same graph.
 """
-function plotdecomposedbettis(results_eirene, dataset_name)
+function plot_decomposed_bettis(results_eirene, dataset_name)
     max_dim = 3;
     bettis = get_bettis(results_eirene, max_dim)
 
