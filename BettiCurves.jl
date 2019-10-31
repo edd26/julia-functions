@@ -170,3 +170,104 @@ function plot_ebetti_curves_heatmap(C, C_ij)
     heat_map1 = heatmap(C_ij,  color=:lightrainbow,
 					title="Cij, $(choice), number of points: $points_per_dim");
 end
+
+
+# TODO merge functions for getting betti curves
+# Original function returns 2 different types of betti curves. If no default
+# value parameters is given, it returns vector of matrices. If num of steps is
+# given, then it return matrix maxdim x numsteps.
+"""
+bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
+
+Takes the `matr` and computes Betti curves up to `maxdim`. Return matrix only
+with betti curve values
+
+
+Function taken from: https://github.com/alexyarosh/hyperbolic
+"""
+function bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
+    c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
+
+    int_length = maxtime-mintime
+    step_length= int_length/numofsteps
+
+    if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
+        # return [betticurve(c, dim=maxdim) for d=1:maxdim]
+        return hcat([betticurve(c, dim=d)[:,2] for d=1:maxdim]...)
+    end
+
+    betts = zeros(numofsteps, maxdim)
+    # For every dimension compute betti curve
+    for dim=1:maxdim
+        bet = betticurve(c, dim=dim)
+
+        #for every element in betti curve return betti value if index is positive
+        for i=1:size(bet,1)
+            b = bet[i,:]
+            ind = Int(ceil((b[1]-mintime)/step_length))
+            if ind > 0
+                betts[ind,dim]=b[2]
+            else
+                betts[1,dim]=b[2]
+            end
+        end
+    end
+    return betts
+end
+
+
+"""
+	get_avg_bettis_from_JLD(data_sets; range=-1, maxsim=-1, steps=-1,
+													subset_size=-1, maxdim=3)
+
+Takes the 'data_sets' (vector of dictionaries from loading data with JLD) and
+computes average betti curves with their std's.
+
+"""
+function get_avg_bettis_from_JLD(data_sets; range=-1,
+                                maxsim=-1, steps=-1, subset_size=-1, maxdim=3)
+
+    avg_betti = Array[]
+    std_betti = Array[]
+
+    if maxsim == -1
+        maxsim=size(data_sets[1]["dist"], 1)
+    end
+
+    if range == -1 || range > size(data_sets,1)
+        range = 1:size(data_sets,1)
+    else
+        range = 1:range
+    end
+
+    for k = range
+        @debug "== Next k" k
+        matrix_set = data_sets[k]["dist"]
+        bettis_set = Array[]
+        # steps = 2600;
+
+        new_bettis= []
+        for m=1:maxsim
+
+            if subset_size == -1
+                subset_range=1:size(matrix_set[1],1)
+            else
+                subset_range=1:subset_size
+            end
+
+            @debug "=== Next m" m
+            ordered_matrix = get_ordered_matrix(matrix_set[m][subset_range,subset_range])
+            new_bettis = bettis_eirene(ordered_matrix, maxdim)
+            push!(bettis_set, new_bettis)
+        end
+
+        # Set size to be the same for every betti curve
+        new_bettis_set = reduce_to_min_len(bettis_set)
+
+        # Compute average betti curve
+        push!(avg_betti, average_bettis(new_bettis_set))
+        push!(std_betti, std_bettis(new_bettis_set))
+    end
+
+    return avg_betti, std_betti
+end
