@@ -69,7 +69,7 @@ julia> get_ordered_matrix(a)
 function get_ordered_matrix(input_matrix)
     data_copy = copy(input_matrix)
     mat_size = size(data_copy,1)
-    ordered_matrix = zeros(Int, mat_size)
+    ordered_matrix = zeros(Int, mat_size, mat_size)
 
     if issymmetric(data_copy)
         symetry_order = true
