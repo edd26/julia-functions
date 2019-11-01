@@ -112,16 +112,11 @@ function get_local_img_correlations(img, centers, sub_img_size, shift)
                         (c_y-half_range):(c_y+half_range)]
         center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
 
-        for left_boundary = 1:(2*shift+1)
-            for lower_boundary = 1:(2*shift+1)
-                corelation = center .*
-                            subimage[left_boundary:left_boundary+sub_img_size-1,
-                                    lower_boundary:lower_boundary+sub_img_size-1]
-                corelation = sum(corelation)
-                local_correlation[position] += corelation
-            end
-        end
-        local_correlation[position] /= 256*(sub_img_size^2)*(shift*2)^2
+        corelation = center .* subimage
+        corelation = sum(corelation)
+        local_correlation[position] += corelation
+
+        local_correlation[position] /= 256*(sub_img_size^2)^2
         position += 1;
     end
 
