@@ -86,7 +86,6 @@ function get_local_img_gradients(img, centers, sub_img_size)
 end
 
 
-
 """
     get_local_img_correlations(img, centers, sub_img_size, shift)
 
@@ -282,4 +281,86 @@ function get_video_mask(points_per_dim, video_dimensions;
     end
 
    return indicies_set
+end
+
+
+using ImageFiltering
+"""
+filt_size = 30 # Controls the patch in which filter is created, not wavelet itself
+σ =2; # controls the width of the waves and thus number of cycles per unit
+angle_1 = 0
+θ = pi*(angle_1/180)  # is the rotation in (half)radians
+λ = 15 # controls the number of waves within the window- higher values- less waves
+γ = 0.2 # is the aspect ratio; small values give long filters
+angle_2 = 0;
+ψ = pi*(angle_2/180) # phase in radians
+"""
+function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
+                            angle_2=[0])
+
+    kernels = Any[]
+    for sigma = σ
+        for angle1 = angle_1
+            θ = pi*(angle1/180)
+            for lambda in λ
+                for gamma in γ
+                    for angle2 in angle_2
+                        ψ = pi*(angle2/180)
+                        kernel = Kernel.gabor(filt_size, filt_size,
+                                        sigma,
+                                        θ,
+                                        lambda,
+                                        gamma,
+                                        ψ)
+
+                        # push!(kernels,Gray.(abs.(kernel[1] + kernel[2]im)))
+                        push!(kernels,Gray.((kernel[1])))
+
+                    end # angle2
+                end # gamma
+            end # lambda
+        end # angle1
+    end # sigmas
+    return kernels
+end
+
+
+
+"""
+    get_local_img_correlations(img, masks, centers)
+
+
+Other version- computes correlation with masks
+"""
+function get_local_img_correlations(img, masks, centers)
+    masks_num = length(masks)
+    sub_img_size = size(masks[1],1)
+    half_size = ceil(Int,(sub_img_size-1)/2)
+    half_range = half_size
+    h, w = size(img)
+    local_correlation = zeros(masks_num, size(centers,1) )
+    index = centers[1]
+    masks_num = length(masks)
+
+    position = 1;
+    for index = centers
+        c_x = index[1]
+        c_y = index[2]
+
+        center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+        mask_pos = 1
+        for mask in masks
+
+            corelation = center .* mask
+            corelation = sum(corelation)
+            local_correlation[mask_pos, position] += corelation
+            local_correlation[mask_pos, position] /= (sub_img_size^2)
+            mask_pos +=1
+        end
+
+
+        position += 1;
+    end
+
+    return local_correlation
 end
