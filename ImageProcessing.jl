@@ -184,3 +184,92 @@ function vectorize_img(img)
 
     return vectorized_img
 end
+
+
+
+
+"""
+    get_video_mask(points_per_dim, video_dimensions; distribution="uniform", sorted=true, x=1, y=1)
+
+Returns matrix of size @points_per_dim x 2 in which indicies of video frame are
+stored. The indicies are chosen based one the @distribution argument. One option
+is uniform distribution, the second is random distribution.
+
+Uniform distribution: distance between the points in given dimension is the
+ even, but vertical distance may be different from horizontal distance between points. This depends on the size of a frame in a image.
+
+Random distribution: the distance between the points is not constant, because
+the points are chosen randomly in the ranges 1:horizontal size of frame,
+1:vertical size of frame. The returned values may be sorted in ascending order,
+if @sorted=true.
+"""
+function get_video_mask(points_per_dim, video_dimensions;
+                            distribution="uniform", sorted=true, patch_params)
+    video_height, video_width,  = video_dimensions
+    y=patch_params["y"]
+    spread=patch_params["spread"]
+
+    if x == 1
+        x = Int64(floor(video_width/2))
+        @warn "Given x is to close to the border. Seeting the value to " x
+    elseif x < Int64(ceil(points_per_dim/2))
+        x = Int64(ceil(points_per_dim/2))
+        @warn "Given x is to close to the border. Seeting the value to " x
+    elseif x > video_width-Int64(ceil(points_per_dim/2))
+        x = video_width - Int64(ceil(points_per_dim/2))
+        @warn "Given x is to close to the border. Seeting the value to " x
+    end
+
+    if y == 1
+        y = Int64(floor(video_height/2))
+        @warn "Given y is to close to the border. Seeting the value to " y
+    elseif y < Int64(ceil(points_per_dim/2))
+        y = Int64(ceil(points_per_dim/2))
+        @warn "Given y is to close to the border. Seeting the value to " y
+    elseif y > video_height-Int64(ceil(points_per_dim/2))
+        y = video_height - Int64(ceil(points_per_dim/2))
+        @warn "Given y is to close to the border. Seeting the value to " y
+    end
+
+    if spread*points_per_dim+x > video_width || spread*points_per_dim+y > video_height
+        @warn "Given patch parameters might result in indicies exceeding frame size."
+    end
+
+    if distribution == "uniform"
+        columns = points_per_dim
+        rows = points_per_dim
+
+        # +1 is used so that the number of points returned is as requested
+        row_step = Int64(floor(video_height/rows))
+        column_step = Int64(floor(video_width/columns))
+
+        (video_height/row_step != points_per_dim) ? row_step+=1 : row_step
+        (video_width/column_step !=
+                                points_per_dim) ? column_step+=1 : video_width
+
+        vertical_indicies = collect(1:row_step:video_height)
+        horizontal_indicies = collect(1:column_step:video_width)
+
+        vertical_indicies = reshape(vertical_indicies, (1,points_per_dim))
+        horizontal_indicies = reshape(horizontal_indicies, (1,points_per_dim))
+
+        indicies_set = [vertical_indicies; horizontal_indicies]
+    elseif distribution == "random"
+        vertical_indicies = rand(1:video_height,1, points_per_dim)
+        horizontal_indicies = rand(1:video_width,1, points_per_dim)
+
+        if sorted
+            vertical_indicies = sort(vertical_indicies[1,:])
+            horizontal_indicies = sort(horizontal_indicies[1,:])
+
+            vertical_indicies = reshape(vertical_indicies, (1,points_per_dim))
+            horizontal_indicies =
+                              reshape(horizontal_indicies, (1,points_per_dim))
+        end
+        indicies_set = [vertical_indicies; horizontal_indicies]
+    elseif distribution == "patch"
+        indicies_set = [collect(1:spread:(spread*points_per_dim)).+x collect(1:spread:(spread*points_per_dim)).+y]'
+    end
+
+   return indicies_set
+end
