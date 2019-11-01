@@ -1,5 +1,5 @@
 using LinearAlgebra
-
+using StatsBase
 """
     shift_to_non_negative(matrix)
 
