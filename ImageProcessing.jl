@@ -63,7 +63,7 @@ function get_local_img_gradients(img, centers, sub_img_size)
     @debug "Entering get_local_gradients"
     half_size = ceil(Int,(sub_img_size-1)/2)
     half_range = half_size
-    h, w, len = get_video_dimension(video_array)
+    h, w = size(img)
     extracted_pixels = zeros(sub_img_size, sub_img_size)
 
     img_grad = imgradients(img, KernelFactors.ando3, "replicate")
