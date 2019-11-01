@@ -140,3 +140,18 @@ function extract_pixels_from_img(img, indicies_set, video_dim_tuple)
 
    return extracted_pixels
 end
+
+
+function get_local_img_centers(points_per_dim, video_dimensions, shift=0, sub_img_size=0 )
+    /# TODO Applied teproray solution here, so it works only for local gradients
+    # start = 0
+    # (points_per_dim>shift) ? start_ind = ceil(Int, points_per_dim/2)+ shift :
+    #                         start=shift
+    start_ind = ceil(Int, sub_img_size/2)
+    min_va,  = findmin(video_dimensions)
+    last_ind = min_va - start_ind
+
+    set = broadcast(floor, Int, range(start_ind, stop=last_ind,  length=points_per_dim))
+    centers = [set set]'
+    return centers
+end
