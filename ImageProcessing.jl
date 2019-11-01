@@ -1,3 +1,5 @@
+using Statistics
+
 """
     rotate_img_around_center(img, angle = 5pi/6)
 
@@ -154,4 +156,31 @@ function get_local_img_centers(points_per_dim, video_dimensions, shift=0, sub_im
     set = broadcast(floor, Int, range(start_ind, stop=last_ind,  length=points_per_dim))
     centers = [set set]'
     return centers
+end
+
+
+
+
+"""
+    vectorize_img(video)
+
+Rearrenges the video so that set of n frames (2D matrix varying in
+time) the set of vectors is returned, in which each row is a pixel, and each
+column is the value of the pixel in n-th frame.
+"""
+function vectorize_img(img)
+    rows, columns = size(img)
+    num_of_elements = rows*columns
+
+    vectorized_img = zeros(num_of_elements)
+
+    index = 1;
+    for row=1:rows
+        for column=1:columns
+            vectorized_img[index] = img[row, column];
+            index = index+1;
+        end
+    end
+
+    return vectorized_img
 end
