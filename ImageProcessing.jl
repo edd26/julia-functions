@@ -1,4 +1,5 @@
 using Statistics
+using Combinatorics
 
 """
     rotate_img_around_center(img, angle = 5pi/6)
@@ -97,30 +98,53 @@ Each of the subimage is center around values stored in  @centers
 """
 function get_local_img_correlations(img, centers, sub_img_size, shift)
     half_size = ceil(Int,(sub_img_size-1)/2)
-    half_range = half_size + shift
+    half_range = half_size# + shift
     h, w = size(img)
     extracted_pixels = zeros(sub_img_size, sub_img_size)
+    local_correlation = zeros(size(centers,1))
+    index = centers[1]
 
-    for index_x = 1:size(centers,2)
-        c_x = centers[2, index_x]
-        for index_y = 1:size(centers,2)
-            c_y = centers[1, index_y]
-            subimage = img[(c_x-half_range):(c_x+half_range),
-                            (c_y-half_range):(c_y+half_range)]
-            center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+    position = 1;
+    for index = centers
+        c_x = index[1]
+        c_y = index[2]
+        subimage = img[(c_x-half_range):(c_x+half_range),
+                        (c_y-half_range):(c_y+half_range)]
+        center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
 
-            for left_boundary = 1:(2*shift+1)
-                for lower_boundary = 1:(2*shift+1)
-                    corelation = center .* subimage[left_boundary:left_boundary+sub_img_size-1, lower_boundary:lower_boundary+sub_img_size-1]
-                    corelation = sum(corelation)
-                    extracted_pixels[index_x, index_y] += corelation
-                end
+        for left_boundary = 1:(2*shift+1)
+            for lower_boundary = 1:(2*shift+1)
+                corelation = center .*
+                            subimage[left_boundary:left_boundary+sub_img_size-1,
+                                    lower_boundary:lower_boundary+sub_img_size-1]
+                corelation = sum(corelation)
+                local_correlation[position] += corelation
             end
-            extracted_pixels[index_x, index_y] /= 256*(sub_img_size^2)*(shift*2)^2
         end
+        local_correlation[position] /= 256*(sub_img_size^2)*(shift*2)^2
+        position += 1;
     end
 
-    return extracted_pixels
+    # for index_x = 1:size(centers,2)
+    #     c_x = centers[2, index_x]
+    #     for index_y = 1:size(centers,2)
+    #         c_y = centers[1, index_y]
+    #         subimage = img[(c_x-half_range):(c_x+half_range),
+    #                         (c_y-half_range):(c_y+half_range)]
+    #         center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+    #
+    #         for left_boundary = 1:(2*shift+1)
+    #             for lower_boundary = 1:(2*shift+1)
+    #                 corelation = center .* subimage[left_boundary:left_boundary+sub_img_size-1, lower_boundary:lower_boundary+sub_img_size-1]
+    #                 corelation = sum(corelation)
+    #                 extracted_pixels[index_x, index_y] += corelation
+    #             end
+    #         end
+    #         extracted_pixels[index_x, index_y] /= 256*(sub_img_size^2)*(shift*2)^2
+    #     end
+    # end
+
+    return local_correlation
 end
 
 
@@ -143,18 +167,27 @@ function extract_pixels_from_img(img, indicies_set, video_dim_tuple)
    return extracted_pixels
 end
 
-
-function get_local_img_centers(points_per_dim, video_dimensions, shift=0, sub_img_size=0 )
+"""
+Returns evenly distributed centers of size `image_size`
+"""
+function get_local_img_centers(points_per_dim, img_size, shift=0, sub_img_size=0 )
     /# TODO Applied teproray solution here, so it works only for local gradients
     # start = 0
     # (points_per_dim>shift) ? start_ind = ceil(Int, points_per_dim/2)+ shift :
     #                         start=shift
     start_ind = ceil(Int, sub_img_size/2)
-    min_va,  = findmin(video_dimensions)
+    min_va,  = findmin(img_size)
     last_ind = min_va - start_ind
 
-    set = broadcast(floor, Int, range(start_ind, stop=last_ind,  length=points_per_dim))
-    centers = [set set]'
+    set = broadcast(floor, Int, range(start_ind, step=sub_img_size,  stop=last_ind))
+    num_indexes = size(set,1)
+
+    centers = Any[]
+    for row = 1:num_indexes
+        for column = 1:num_indexes
+            push!(centers, CartesianIndex(set[row], set[column]))
+        end
+    end
     return centers
 end
 
@@ -206,6 +239,7 @@ if @sorted=true.
 function get_video_mask(points_per_dim, video_dimensions;
                             distribution="uniform", sorted=true, patch_params)
     video_height, video_width,  = video_dimensions
+    x=patch_params["x"]
     y=patch_params["y"]
     spread=patch_params["spread"]
 
