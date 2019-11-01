@@ -352,9 +352,11 @@ function get_local_img_correlations(img, masks, centers)
         for mask in masks
 
             corelation = center .* mask
+
             corelation = sum(corelation)
             local_correlation[mask_pos, position] += corelation
             local_correlation[mask_pos, position] /= (sub_img_size^2)
+            # local_correlation[position, mask_pos ] =  sum(imfilter(center, mask))/(sub_img_size^2)
             mask_pos +=1
         end
 
