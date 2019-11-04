@@ -147,7 +147,7 @@ end
 Returns evenly distributed centers of size `image_size`
 """
 function get_local_img_centers(points_per_dim, img_size, shift=0, sub_img_size=0 )
-    /# TODO Applied teproray solution here, so it works only for local gradients
+    # TODO Applied teproray solution here, so it works only for local gradients
     # start = 0
     # (points_per_dim>shift) ? start_ind = ceil(Int, points_per_dim/2)+ shift :
     #                         start=shift
@@ -168,6 +168,37 @@ function get_local_img_centers(points_per_dim, img_size, shift=0, sub_img_size=0
 end
 
 
+"""
+    get_img_local_centers(img_size, sub_img_size=10)
+
+Tiles the image of size `img_size` into square subimages of size `sub_img_size`
+and returns vector with CartesianIndex coordinates of the subimages centre in
+original image.
+
+Takes smaller value from `img_size` and then divides it by `sub_img_size`.
+Resulting value will be the number of returned subimages per dimension.
+"""
+function get_img_local_centers(img_size, sub_img_size=10)
+    # TODO Applied teproray solution here, so it works only for local gradients
+    min_va,  = findmin(img_size)
+    if sub_img_size > min_va
+        throw(BoundsError( "`sub_img_size` is bigger than original image."))
+    end
+
+    start_ind = ceil(Int, sub_img_size/2)
+    last_ind = min_va - start_ind
+
+    set = broadcast(floor, Int, range(start_ind, step=sub_img_size,  stop=last_ind))
+    num_indexes = size(set,1)
+
+    centers = Any[]
+    for row = 1:num_indexes
+        for column = 1:num_indexes
+            push!(centers, CartesianIndex(set[row], set[column]))
+        end
+    end
+    return centers
+end
 
 
 """
