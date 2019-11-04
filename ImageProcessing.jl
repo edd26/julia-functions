@@ -332,6 +332,50 @@ end
 
 
 """
+    rearrange_filters_arr(im_filter; showing_number=-1)
+
+Creates image with elements stored in `im_filters`. `showing_number` determines
+how many of the element from `im_fiter` are displayed.
+
+`im_filters` is an array with elements of type Matrix{Gray}.
+"""
+function rearrange_filters_arr(im_filter; showing_number=-1)
+    mask_size = size(masks[1],1)
+    masks_num = length(masks)
+    if showing_number == -1 || showing_number > masks_num
+        max_indeks = masks_num
+    else
+        max_indeks = showing_number
+    end
+    columns = Int(ceil(sqrt(masks_num)))
+    rows= Int(ceil(masks_num/columns))
+
+    all_filters = zeros(Gray, rows*mask_size, columns*mask_size)
+
+    mask_index = 1
+    for row in 1:rows
+        start_row = (row-1)*mask_size+1
+        row_range = start_row:(start_row+mask_size-1)
+
+        for col = 1:columns
+            start_col = (col-1)*mask_size+1
+            col_range = start_col:(start_col+mask_size-1)
+            if mask_index > max_indeks
+                break
+            else
+                all_filters[row_range, col_range] = masks[mask_index]
+                mask_index += 1
+            end
+        end
+        if mask_index > max_indeks
+            break
+        end
+    end
+    return all_filters
+end
+
+
+"""
     get_local_img_correlations(img, masks, centers)
 
 Takes `img` and computes crosscorrelation with set of `masks` around the
