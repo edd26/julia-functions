@@ -287,7 +287,7 @@ end
 
 """
     get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
-                            angle_2=[0])
+                            angle_2=[0], re_part=true, im_part=false)
 
 Returns set of gabor filters generated with given parameters. Parameters are described
 below. Function uses Kernel.gabor() from ImageFiltering.
@@ -299,9 +299,11 @@ below. Function uses Kernel.gabor() from ImageFiltering.
 - `λ=15` : controls the number of waves within the window- higher values- less waves
 - `γ=0.2` : is the aspect ratio; small values give long filters
 - `angle_2=0` : phase, pi*(angle_2/180)
+- `re_part::Bool`: determines if real part of the Gabor filter is returned
+- `im_part::Bool`: determines if imaginary part of the Gabor filter is returned
 """
 function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
-                            angle_2=[0])
+                            angle_2=[0], re_part=true, im_part=false)
 
     kernels = Any[]
     for sigma = σ
@@ -317,10 +319,14 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2
                                         lambda,
                                         gamma,
                                         ψ)
-
-                        # push!(kernels,Gray.(abs.(kernel[1] + kernel[2]im)))
-                        push!(kernels,Gray.((kernel[1])))
-
+                        if re_part && !im_part
+                            push!(kernels,Gray.((kernel[1])))
+                        elseif im_part && !re_part
+                            push!(kernels,Gray.((kernel[2])))
+                        else
+                            @debug "Using abs(re(A)+im(A))"
+                            push!(kernels,Gray.(abs.(kernel[1] + kernel[2])))
+                        end
                     end # angle2
                 end # gamma
             end # lambda
