@@ -59,7 +59,7 @@ Creates a plot for set of betti numbers stored in `bettis` and return the
 handler to the plot.
 `plot_title` is used for the title of the plot.
 """
-function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=1200, height=800),
+function plot_bettis(bettis, plot_title; legend_on=true, , min_dim=0)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
@@ -69,7 +69,7 @@ function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=12
 
     plot_ref = plot(title=final_title);
     max_dim = size(bettis)[1]
-    for p = 2:(max_dim)
+    for p = (2+min_dim):(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
                                                     lc=colors_set[p]);
         if legend_on
@@ -99,11 +99,11 @@ horizontal axis maximal value.
 function plot_and_save_bettis(eirene_results, plot_title::String,
 								results_path::String; extension = ".png",
 								data_size::String="", do_save=true,
-								extend_title=true, do_normalise=true, max_dim=3,
-								legend_on=true)
+								extend_title=true, do_normalise=true, min_dim=0,
+								max_dim=3, legend_on=true)
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
-    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on);
+    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
 
     if do_save
 		if extend_title
