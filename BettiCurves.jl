@@ -69,7 +69,7 @@ function plot_bettis(bettis, plot_title; legend_on=true)#; plot_size = (width=12
 
     plot_ref = plot(title=final_title);
     max_dim = size(bettis)[1]
-    for p = 1:(max_dim)
+    for p = 2:(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
                                                     lc=colors_set[p]);
         if legend_on
