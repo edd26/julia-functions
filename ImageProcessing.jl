@@ -286,14 +286,19 @@ end
 
 
 """
-filt_size = 30 # Controls the patch in which filter is created, not wavelet itself
-σ =2; # controls the width of the waves and thus number of cycles per unit
-angle_1 = 0
-θ = pi*(angle_1/180)  # is the rotation in (half)radians
-λ = 15 # controls the number of waves within the window- higher values- less waves
-γ = 0.2 # is the aspect ratio; small values give long filters
-angle_2 = 0;
-ψ = pi*(angle_2/180) # phase in radians
+    get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
+                            angle_2=[0])
+
+Returns set of gabor filters generated with given parameters. Parameters are described 
+below.
+
+# Arguments
+- `filt_size=30` : controls the patch in which filter is created, not wavelet itself
+- `σ=2` : controls the width of the waves and thus number of cycles per unit
+- `angle_1=0` : is the rotation in (half)radians, θ = pi*(angle_1/180)
+- `λ=15` : controls the number of waves within the window- higher values- less waves
+- `γ=0.2` : is the aspect ratio; small values give long filters
+- `angle_2=0` : phase, pi*(angle_2/180)  
 """
 function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
                             angle_2=[0])
@@ -329,8 +334,9 @@ end
 """
     get_local_img_correlations(img, masks, centers)
 
-
-Other version- computes correlation with masks
+Takes `img` and computes crosscorrelation with set of `masks` around the
+`centers`. Crosscorrelation is computed as convolution of the mask and the area
+around coordinates stored in `centres`.
 """
 function get_local_img_correlations(img, masks, centers)
     masks_num = length(masks)
@@ -359,7 +365,6 @@ function get_local_img_correlations(img, masks, centers)
             # local_correlation[position, mask_pos ] =  sum(imfilter(center, mask))/(sub_img_size^2)
             mask_pos +=1
         end
-
 
         position += 1;
     end
