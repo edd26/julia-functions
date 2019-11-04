@@ -59,7 +59,7 @@ Creates a plot for set of betti numbers stored in `bettis` and return the
 handler to the plot.
 `plot_title` is used for the title of the plot.
 """
-function plot_bettis(bettis, plot_title; legend_on=true, , min_dim=0)#; plot_size = (width=1200, height=800),
+function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
