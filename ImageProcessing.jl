@@ -289,8 +289,8 @@ end
     get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
                             angle_2=[0])
 
-Returns set of gabor filters generated with given parameters. Parameters are described 
-below.
+Returns set of gabor filters generated with given parameters. Parameters are described
+below. Function uses Kernel.gabor() from ImageFiltering.
 
 # Arguments
 - `filt_size=30` : controls the patch in which filter is created, not wavelet itself
@@ -298,7 +298,7 @@ below.
 - `angle_1=0` : is the rotation in (half)radians, θ = pi*(angle_1/180)
 - `λ=15` : controls the number of waves within the window- higher values- less waves
 - `γ=0.2` : is the aspect ratio; small values give long filters
-- `angle_2=0` : phase, pi*(angle_2/180)  
+- `angle_2=0` : phase, pi*(angle_2/180)
 """
 function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
                             angle_2=[0])
