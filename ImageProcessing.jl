@@ -330,8 +330,14 @@ below. Function uses Kernel.gabor() from ImageFiltering.
 - `λ=15` : controls the number of waves within the window- higher values- less waves
 - `γ=0.2` : is the aspect ratio; small values give long filters
 - `angle_2=0` : phase, pi*(angle_2/180)
-- `re_part::Bool`: determines if real part of the Gabor filter is returned
+- `re_part::Bool`: determines if real part of the Gabor filter is returned; real
+    part is normalized to be in range [0,1]
 - `im_part::Bool`: determines if imaginary part of the Gabor filter is returned
+    imaginary part is normalized to be in range [0,1]
+
+if both `re_part` and `im_part` are true, then absolute value of complex number
+    of form `re_part + im_part im` is returned (it is also normalized to range
+    [0,1]).
 """
 function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
                             angle_2=[0], re_part=true, im_part=false)
@@ -351,12 +357,21 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2
                                         gamma,
                                         ψ)
                         if re_part && !im_part
+                            kernel[1] .+= abs(findmin(kernel[1])[1])
+                            kernel[1] ./= findmax(kernel[1])[1]
                             push!(kernels,Gray.((kernel[1])))
+
                         elseif im_part && !re_part
+                            kernel[1] .+= abs(findmin(kernel[1])[1])
+                            kernel[1] ./= findmax(kernel[1])[1]
                             push!(kernels,Gray.((kernel[2])))
+
                         else
                             @debug "Using abs(re(A)+im(A))"
-                            push!(kernels,Gray.(abs.(kernel[1] + kernel[2]im)))
+                            result = abs.(kernel[1] + kernel[2]im);
+                            result .+= abs(findmin(result)[1])
+                            result ./= findmax(result)[1]
+                            push!(kernels,Gray.())
                         end
                     end # angle2
                 end # gamma
