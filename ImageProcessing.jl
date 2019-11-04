@@ -55,40 +55,33 @@ function get_local_gradients(video_array, centers, sub_img_size)
 end
 
 
-
 """
-    get_local_img_gradients(img, centers, sub_img_size)
+    get_img_gradient(img)
 
-Computes the gradients in the subimage, takes the mean of sum of absolute
-values of both hotizontal and vertical gradients as a representative of a
-subimage.
+Computes the gradients in the `img`.
 """
-function get_local_img_gradients(img, centers, sub_img_size)
+function get_img_gradient(img)
     @debug "Entering get_local_gradients"
-    half_size = ceil(Int,(sub_img_size-1)/2)
-    half_range = half_size
-    h, w = size(img)
-    extracted_pixels = zeros(sub_img_size, sub_img_size)
 
     img_grad = imgradients(img, KernelFactors.ando3, "replicate")
-    img_grad_abs = map(abs, img_grad[1]) + map(abs, img_grad[2])
-    for index_x = 1:size(centers,2)
-        c_x = centers[2, index_x]
-        for index_y = 1:size(centers,2)
-            c_y = centers[1, index_y]
-            sub_img  = img_grad_abs[(c_x-half_size):(c_x+half_size),
-                                    (c_y-half_size):(c_y+half_size)]
 
-            extracted_pixels[index_x, index_y] =mean(sub_img)
-        end
-    end
+    grad_1 = img_grad[1] .+ abs(findmin(img_grad[1])[1])
+    grad_1 ./= findmax(grad_1)[1]
 
-    return extracted_pixels
+    grad_2 = img_grad[2] .+ abs(findmin(img_grad[2])[1])
+    grad_2 ./= findmax(grad_2)[1]
+
+    grad_sum = grad_1 + grad_2
+    grad_sum .+= abs(findmin(grad_sum)[1])
+    grad_sum ./= findmax(grad_sum)[1]
+
+    return grad_sum
 end
 
 
 """
-    get_local_img_correlations(img, centers, sub_img_size, shift)
+    get_local_img_correlations(img, centers, sub_img_size, shift;
+                                                        with_gradient=false)
 
 Computes the correlation between the subimages and subimages shifted by values
 from range -`shift`:`shift` and returns array of size
@@ -96,13 +89,17 @@ length(`centers`) x length(`centers`).
 
 Each of the subimage is center around values stored in  @centers
 """
-function get_local_img_correlations(img, centers, sub_img_size)
+function get_local_img_correlations(img, centers, sub_img_size;
+                                                    with_gradient=false)
     half_size = ceil(Int,(sub_img_size-1)/2)
     half_range = half_size#
     h, w = size(img)
     extracted_pixels = zeros(sub_img_size, sub_img_size)
     local_correlation = zeros(size(centers,1))
-    index = centers[1]
+
+    if with_gradient
+        img = get_img_gradient(img)
+    end
 
     position = 1;
     for index = centers
@@ -123,6 +120,49 @@ function get_local_img_correlations(img, centers, sub_img_size)
     return local_correlation
 end
 
+
+
+
+"""
+    get_local_img_correlations(img,centers, masks)
+
+Takes `img` and computes crosscorrelation with set of `masks` around the
+`centers`. Crosscorrelation is computed as convolution of the mask and the area
+around coordinates stored in `centres`.
+"""
+function get_local_img_correlations(img, centers, masks)
+    masks_num = length(masks)
+    sub_img_size = size(masks[1],1)
+    half_size = ceil(Int,(sub_img_size-1)/2)
+    half_range = half_size
+    h, w = size(img)
+    local_correlation = zeros(masks_num, size(centers,1) )
+    index = centers[1]
+    masks_num = length(masks)
+
+    position = 1;
+    for index = centers
+        c_x = index[1]
+        c_y = index[2]
+
+        center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+        mask_pos = 1
+        for mask in masks
+
+            corelation = center .* mask
+
+            corelation = sum(corelation)
+            local_correlation[mask_pos, position] += corelation
+            local_correlation[mask_pos, position] /= (sub_img_size^2)
+            # local_correlation[position, mask_pos ] =  sum(imfilter(center, mask))/(sub_img_size^2)
+            mask_pos +=1
+        end
+
+        position += 1;
+    end
+
+    return local_correlation
+end
 
 
 """
@@ -424,46 +464,4 @@ function rearrange_filters_arr(im_filter; showing_number=-1)
         end
     end
     return all_filters
-end
-
-
-"""
-    get_local_img_correlations(img, masks, centers)
-
-Takes `img` and computes crosscorrelation with set of `masks` around the
-`centers`. Crosscorrelation is computed as convolution of the mask and the area
-around coordinates stored in `centres`.
-"""
-function get_local_img_correlations(img, masks, centers)
-    masks_num = length(masks)
-    sub_img_size = size(masks[1],1)
-    half_size = ceil(Int,(sub_img_size-1)/2)
-    half_range = half_size
-    h, w = size(img)
-    local_correlation = zeros(masks_num, size(centers,1) )
-    index = centers[1]
-    masks_num = length(masks)
-
-    position = 1;
-    for index = centers
-        c_x = index[1]
-        c_y = index[2]
-
-        center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
-        mask_pos = 1
-        for mask in masks
-
-            corelation = center .* mask
-
-            corelation = sum(corelation)
-            local_correlation[mask_pos, position] += corelation
-            local_correlation[mask_pos, position] /= (sub_img_size^2)
-            # local_correlation[position, mask_pos ] =  sum(imfilter(center, mask))/(sub_img_size^2)
-            mask_pos +=1
-        end
-
-        position += 1;
-    end
-
-    return local_correlation
 end
