@@ -1,5 +1,6 @@
 using Statistics
 using Combinatorics
+using ImageFiltering
 
 """
     rotate_img_around_center(img, angle = 5pi/6)
@@ -284,7 +285,6 @@ function get_video_mask(points_per_dim, video_dimensions;
 end
 
 
-using ImageFiltering
 """
 filt_size = 30 # Controls the patch in which filter is created, not wavelet itself
 σ =2; # controls the width of the waves and thus number of cycles per unit
