@@ -130,7 +130,7 @@ Takes `img` and computes crosscorrelation with set of `masks` around the
 `centers`. Crosscorrelation is computed as convolution of the mask and the area
 around coordinates stored in `centres`.
 """
-function get_local_img_correlations(img, centers, masks)
+function get_local_img_correlations(img, centers, masks; with_gradient=false)
     masks_num = length(masks)
     sub_img_size = size(masks[1],1)
     half_size = ceil(Int,(sub_img_size-1)/2)
@@ -139,6 +139,10 @@ function get_local_img_correlations(img, centers, masks)
     local_correlation = zeros(masks_num, size(centers,1) )
     index = centers[1]
     masks_num = length(masks)
+
+    if with_gradient
+        img = get_img_gradient(img)
+    end
 
     position = 1;
     for index = centers
