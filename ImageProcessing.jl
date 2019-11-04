@@ -325,7 +325,7 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2
                             push!(kernels,Gray.((kernel[2])))
                         else
                             @debug "Using abs(re(A)+im(A))"
-                            push!(kernels,Gray.(abs.(kernel[1] + kernel[2])))
+                            push!(kernels,Gray.(abs.(kernel[1] + kernel[2]im)))
                         end
                     end # angle2
                 end # gamma
