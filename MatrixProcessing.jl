@@ -111,9 +111,10 @@ function get_ordered_matrix(input_matrix)
     end
 
     # ====
-    max_orig = (findmin(input_matrix)[2])
-    max_new = (findall(x->x==1,ordered_matrix)[1])
-    @debug "Original maximal value was at position: " max_orig
+    non_zero_input = findall(x->x!=0,input_matrix)
+    max_orig = findmin(input_matrix[non_zero_input])[2]
+    max_new = findall(x->x==1,ordered_matrix)[1]
+    @debug "Original maximal value was at position: " non_zero_input[max_orig]
     @debug "After ordering the first index value is at position: " max_new
     return ordered_matrix
 end
