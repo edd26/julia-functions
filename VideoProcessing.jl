@@ -13,13 +13,19 @@ export get_video_array_from_file,
         get_video_dimension,
         get_video_mask,
         extract_pixels_from_video,
-        extract_pixels_from_video,
         vectorize_video,
+        get_pairwise_correlation_matrix,
         get_average_from_tiles,
+        rotate_img_around_center,
         rotate_vid_around_center,
         export_images_to_vid,
         rotate_and_save_video,
-        get_local_centers;
+        get_local_correlations,
+        get_local_centers,
+        get_local_gradients,
+        normalize_to_01,
+        shift_to_non_negative,
+        plotimg;
 
 """
  get_video_array_from_file(video_name)
@@ -192,6 +198,49 @@ function vectorize_video(video)
     return vectorized_video
 end
 
+"""
+    get_pairwise_correlation_matrix(vectorized_video, tau_max=25)
+
+Computes pairwise correlation of the input signals accordingly to the formula
+presented in paper "Clique topology reveals intrinsic geometric structure
+in neural correlations" by Chad Giusti et al.
+
+The Computations are done only for upper half of the matrix, the lower half is
+a copy of upper half. Computation-wise the difference is at level of 1e-16, but
+this causes that inverse is not the same as non-inverse matrix.
+
+"""
+function get_pairwise_correlation_matrix(vectorized_video, tau_max=25)
+    number_of_signals = size(vectorized_video,1)
+    T = size(vectorized_video,2)
+
+    C_ij = zeros(number_of_signals,number_of_signals);
+    # log_C_ij = zeros(number_of_signals,number_of_signals);
+
+     # this is given in frames
+    lags = -tau_max:1:tau_max
+
+
+    for row=1:number_of_signals
+        for column=row:number_of_signals
+            signal_ij = vectorized_video[row,:];
+            signal_ji = vectorized_video[column,:];
+
+            # cross_corelation
+            ccg_ij = crosscov(signal_ij, signal_ji, lags);
+            ccg_ij = ccg_ij ./ T;
+
+            A = sum(ccg_ij[tau_max+1:end]);
+            B = sum(ccg_ij[1:tau_max+1]);
+            r_i_r_j = 1;
+            C_ij[row, column] = max(A, B)/(tau_max*r_i_r_j);
+            C_ij[column, row] = C_ij[row, column]
+            # log_C_i_j[row, column] = log10(abs(C_ij[row, column]));
+        end
+    end
+
+    return C_ij
+end
 
 
 """
@@ -222,6 +271,25 @@ function get_average_from_tiles(extracted_pixels_matrix, N)
     end
     return result_matrix
 end
+
+
+"""
+    rotate_img_around_center(img, angle = 5pi/6)
+
+Function rotates a single image (or a frame) around the center of the image by
+@angle radians.
+"""
+function rotate_img_around_center(img, angle = 5pi/6)
+  θ = angle
+  rot = recenter(RotMatrix(θ), [size(img)...] .÷ 2)  # a rotation around the center
+  x_translation = 0
+  y_translation = 0
+  tform = rot ∘ Translation(y_translation, x_translation)
+  img2 = warp(img, rot, axes(img))
+
+  return img2
+end
+
 
 
 """
@@ -320,6 +388,49 @@ function rotate_and_save_video(src_vid_path, src_vid_name, dest_vid_name, rotati
 end
 
 
+
+
+"""
+    get_local_correlations(video_array, centers, sub_img_size, shift)
+
+Computes the correlation between the subimages and subimages shifted by values
+from range -@shift:@shift and returns array with frames of size
+length(@centers) x length(@centers) with the number of frames equal to the
+number of rames in @video_array.
+
+Each of the subimage is center around values stored in  @centers
+"""
+function get_local_correlations(video_array, centers, sub_img_size, shift)
+    half_size = ceil(Int,(sub_img_size-1)/2)
+    half_range = half_size + shift
+    h, w, len = get_video_dimension(video_array)
+    extracted_pixels = zeros(sub_img_size, sub_img_size, len)
+
+    for frame = 1:len
+        img = video_array[frame]
+        for index_x = 1:size(centers,2)
+            c_x = centers[2, index_x]
+            for index_y = 1:size(centers,2)
+                c_y = centers[1, index_y]
+                subimage = img[(c_x-half_range):(c_x+half_range),
+                                (c_y-half_range):(c_y+half_range)]
+                center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+
+                for left_boundary = 1:(2*shift+1)
+                    for lower_boundary = 1:(2*shift+1)
+                        corelation = center .* subimage[left_boundary:left_boundary+sub_img_size-1, lower_boundary:lower_boundary+sub_img_size-1]
+                        corelation = sum(corelation)
+                        extracted_pixels[index_x, index_y, frame] += corelation
+                    end
+                end
+                extracted_pixels[index_x, index_y, frame] /= 256*(sub_img_size^2)*(shift*2)^2
+            end
+        end
+    end
+    return extracted_pixels
+end
+
+
 function get_local_centers(points_per_dim, video_dimensions, shift=0, sub_img_size=0 )
     /# TODO Applied teproray solution here, so it works only for local gradients
     # start = 0
@@ -332,4 +443,122 @@ function get_local_centers(points_per_dim, video_dimensions, shift=0, sub_img_si
     set = broadcast(floor, Int, range(start_ind, stop=last_ind,  length=points_per_dim))
     centers = [set set]'
     return centers
+end
+
+
+"""
+    get_local_gradients(video_array, centers, sub_img_size)
+
+Computes the gradients in the subimage, takes the mean of sum of absolute
+values of both hotizontal and vertical gradients as a representative of a
+subimage.
+"""
+function get_local_gradients(video_array, centers, sub_img_size)
+    @debug "Entering get_local_gradients"
+    half_size = ceil(Int,(sub_img_size-1)/2)
+    half_range = half_size
+    h, w, len = get_video_dimension(video_array)
+    extracted_pixels = zeros(sub_img_size, sub_img_size, len)
+
+    @debug "starting frame procesing"
+    for frame = 1:len
+        img = video_array[frame]
+        img_grad = imgradients(img, KernelFactors.ando3, "replicate")
+        img_grad_abs = map(abs, img_grad[1]) + map(abs, img_grad[2])
+        for index_x = 1:size(centers,2)
+            c_x = centers[2, index_x]
+            for index_y = 1:size(centers,2)
+                c_y = centers[1, index_y]
+                sub_img  = img_grad_abs[(c_x-half_size):(c_x+half_size),
+                                        (c_y-half_size):(c_y+half_size)]
+
+                extracted_pixels[index_x, index_y, frame] =mean(sub_img)
+            end
+        end
+        # @debug "Next frame" frame
+    end
+    return extracted_pixels
+end
+
+"""
+    normalize_to_01(matrix, norm_factor=256)
+
+Returns a matrix which values are in range [0, 1]. If the values in the input
+matrix are below 0, then they are shifted so that only positive numbers are in
+the matrix. If the values in the matrix of shifted matrix excced value of the
+@norm_factor parameter, then the matrix is normalized to the maximal value from
+the matrix.
+"""
+function normalize_to_01(matrix, norm_factor=256)
+    normalized_matrix = copy(matrix)
+    min_val = findmin(normalized_matrix)[1]
+    max_val = findmax(normalized_matrix)[1]
+
+    if min_val < 0
+        normalized_matrix .-= min_val
+    end
+
+    if max_val > norm_factor
+        @warn "Values normalized to maximal value, not notmalization factor."
+        normalized_matrix = normalized_matrix./max_val
+    else
+        normalized_matrix = normalized_matrix./norm_factor
+    end
+    return normalized_matrix
+end
+
+"""
+    shift_to_non_negative(matrix)
+
+Returns a matrix in which values are non-negative. This is done by finding the
+minimal value in the input matrix and adding its absolute value to the matix
+elements.
+"""
+function shift_to_non_negative(matrix)
+
+    min_val = findmin(matrix)[1]
+    if min_val < 0
+        return matrix .-= min_val
+    else
+        return matrix
+    end
+end
+
+
+"""
+    plotimg(matrix_to_plot)
+
+Display an image as a plot. The values from the input matrix are adjusted to the
+value range of [0, 1].
+
+If @cut_off is true then the matrix values above 256 are set to 256 and then all
+values are normalized to the value 256. If @cut_off is false, then values are
+normalized to maximal value.
+"""
+function plotimg(matrix_to_plot, cut_off=false)
+    matrix_type = typeof(matrix_to_plot)
+    min_val = findmin(matrix_to_plot)[1]
+    int_types_arr = [Matrix{UInt8}; Matrix{UInt16}; Matrix{UInt32};
+                    Matrix{UInt64}; Matrix{UInt128}; Matrix{Int8};
+                    Matrix{Int16}; Matrix{Int32}; Matrix{Int64};
+                    Matrix{Int128}]
+    float_types_arr = [Matrix{Float16} Matrix{Float32} Matrix{Float64}]
+
+    if min_val<0
+        matrix_to_plot = shift_to_non_negative(matrix_to_plot)
+    end
+
+    max_val = findmax(matrix_to_plot)[1]
+
+    if max_val > 256 && cut_off
+        matrix_to_plot[findall(x -> x>256, matrix_to_plot)] = 256
+    end
+
+    if in(matrix_type, int_types_arr)
+        matrix_to_plot = normalize_to_01(matrix_to_plot)
+    elseif in(matrix_type, float_types_arr)
+        matrix_to_plot = normalize_to_01(matrix_to_plot, max_val)
+    end
+
+    return colorview(Gray, matrix_to_plot)
 end
