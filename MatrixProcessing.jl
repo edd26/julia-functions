@@ -50,8 +50,8 @@ end
     get_ordered_matrix(input_matrix)
 
 Takes a `input_matrix` and returns ordered form of this matrix.
-The values of returned matrix represent position in descending ordering of
-of input matrix.
+The ordered form i s a matrix which elements represent ordering from smallest to 
+highest values in `iput_matrix`.
 
 If `input_matrix` is symmetric, then the returned values are ordered above the
 diagonal. Lower diagonal is symetrically copied from values above diagonal.
@@ -101,7 +101,6 @@ function get_ordered_matrix(input_matrix)
     # Sort indices by values (highest to lowest)
     ordered_indices = sort!([1:repetitions;],
                         by=i->(sorting_values[i],matrix_indices[i]))
-
 
     for k=1:repetitions
         next_position = ordered_indices[k]
