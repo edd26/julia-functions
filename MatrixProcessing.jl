@@ -67,11 +67,10 @@ julia> get_ordered_matrix(a)
 ```
 """
 function get_ordered_matrix(input_matrix)
-    data_copy = copy(input_matrix)
-    mat_size = size(data_copy,1)
+    mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
 
-    if issymmetric(data_copy)
+    if issymmetric(input_matrix)
         symetry_order = true
     else
         symetry_order = false
@@ -87,21 +86,22 @@ function get_ordered_matrix(input_matrix)
         matrix_indices = findall(x->true, matrix_indices)
     end
 
-    # Get all values which will be sorted
-    sorting_values = data_copy[matrix_indices]
-
-    # Sort indices by values (highest to lowest)
-    ordered_indices = sort!([1:size(matrix_indices,1);],
-                        by=i->(sorting_values[i],matrix_indices[i]))
-
     # Put evrything together
     if symetry_order
         # how many elements are above diagonal
         repetitions = Int(ceil((mat_size * (mat_size-1))/2))
     else
         # how many elements are in whole matrix
-        repetitions = Int(ceil((size(data_copy)[1] * size(data_copy)[1])))
+        repetitions = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
     end
+
+    # Get all values which will be sorted
+    sorting_values = input_matrix[matrix_indices]
+
+    # Sort indices by values (highest to lowest)
+    ordered_indices = sort!([1:repetitions;],
+                        by=i->(sorting_values[i],matrix_indices[i]))
+
 
     for k=1:repetitions
         next_position = ordered_indices[k]
@@ -111,7 +111,7 @@ function get_ordered_matrix(input_matrix)
     end
 
     # ====
-    max_orig = (findmax(input_matrix)[2])
+    max_orig = (findmin(input_matrix)[2])
     max_new = (findall(x->x==1,ordered_matrix)[1])
     @debug "Original maximal value was at position: " max_orig
     @debug "After ordering the first index value is at position: " max_new
