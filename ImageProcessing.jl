@@ -406,8 +406,8 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2
                             push!(kernels,Gray.((kernel[1])))
 
                         elseif im_part && !re_part
-                            kernel[1] .+= abs(findmin(kernel[1])[1])
-                            kernel[1] ./= findmax(kernel[1])[1]
+                            kernel[2] .+= abs(findmin(kernel[2])[1])
+                            kernel[2] ./= findmax(kernel[2])[1]
                             push!(kernels,Gray.((kernel[2])))
 
                         else
