@@ -361,8 +361,8 @@ end
 
 
 """
-    get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
-                            angle_2=[0], re_part=true, im_part=false)
+    get_gabor_mask_set(;filt_size=25, σ=[2], theta_angle=[0], λ=[15], γ=[0.2],
+                            psi_angle=[0], re_part=true, im_part=false)
 
 Returns set of gabor filters generated with given parameters. Parameters are described
 below. Function uses Kernel.gabor() from ImageFiltering.
@@ -370,10 +370,10 @@ below. Function uses Kernel.gabor() from ImageFiltering.
 # Arguments
 - `filt_size=30` : controls the patch in which filter is created, not wavelet itself
 - `σ=2` : controls the width of the waves and thus number of cycles per unit
-- `angle_1=0` : is the rotation in (half)radians, θ = pi*(angle_1/180)
+- `theta_angle=0` : is the rotation in (half)radians, θ = pi*(theta_angle/180)
 - `λ=15` : controls the number of waves within the window- higher values- less waves
 - `γ=0.2` : is the aspect ratio; small values give long filters
-- `angle_2=0` : phase, pi*(angle_2/180)
+- `psi_angle=0` : phase, pi*(psi_angle/180)
 - `re_part::Bool`: determines if real part of the Gabor filter is returned; real
     part is normalized to be in range [-0.5,0.5]
 - `im_part::Bool`: determines if imaginary part of the Gabor filter is returned
@@ -383,16 +383,16 @@ if both `re_part` and `im_part` are true, then absolute value of complex number
     of form `re_part + im_part im` is returned (it is also normalized to range
     [-0.5,0.5]).
 """
-function get_gabor_mask_set(;filt_size=25, σ=[2], angle_1=[0], λ=[15], γ=[0.2],
-                            angle_2=[0], re_part=true, im_part=false)
+function get_gabor_mask_set(;filt_size=25, σ=[2], theta_angle=[0], λ=[15], γ=[0.2],
+                            psi_angle=[0], re_part=true, im_part=false)
 
     kernels = Any[]
     for sigma = σ
-        for angle1 = angle_1
+        for angle1 = theta_angle
             θ = pi*(angle1/180)
             for lambda in λ
                 for gamma in γ
-                    for angle2 in angle_2
+                    for angle2 in psi_angle
                         ψ = pi*(angle2/180)
                         kernel = Kernel.gabor(filt_size, filt_size,
                                         sigma,
