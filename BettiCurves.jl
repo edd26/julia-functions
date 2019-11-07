@@ -97,8 +97,9 @@ or if `do_normalise` is set, sets the steps range to be normalised to the
 horizontal axis maximal value.
 """
 function plot_and_save_bettis(eirene_results, plot_title::String,
-								results_path::String; extension = ".png",
-								data_size::String="", do_save=true,
+								results_path::String; file_name="",
+								extension = ".png", data_size::String="",
+								do_save=true,
 								extend_title=true, do_normalise=true, min_dim=0,
 								max_dim=3, legend_on=true)
     bettis = get_bettis(eirene_results, max_dim);
@@ -106,10 +107,12 @@ function plot_and_save_bettis(eirene_results, plot_title::String,
     plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
 
     if do_save
-		if extend_title
+		if extend_title && isempty(file_name)
 			file_name = "betti_c_"*plot_title*data_size*extension;
-		else
+		elseif isempty(file_name)
 			file_name = plot_title*extension
+		else
+			file_name *= extension
 		end
 
         savefig(plot_ref, results_path*file_name)
