@@ -111,7 +111,8 @@ function plot_and_save_bettis(eirene_results, plot_title::String,
 			file_name = "betti_c_"*plot_title*data_size*extension;
 		elseif isempty(file_name)
 			file_name = plot_title*extension
-		else
+		elseif isempty(findall(x->x==extension[2:end], split(file_name, ".")))
+			#check for the extension in file name
 			file_name *= extension
 		end
 
