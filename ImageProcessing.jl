@@ -384,7 +384,7 @@ if both `re_part` and `im_part` are true, then absolute value of complex number
     [-0.5,0.5]).
 """
 function get_gabor_mask_set(;filt_size=25, σ=[2], theta_angle=[0], λ=[15], γ=[0.2],
-                            psi_angle=[0], re_part=true, im_part=false)
+                            psi_angle=[0], re_part=true, im_part=false, do_norm=true)
 
     kernels = Any[]
     for sigma = σ
@@ -403,14 +403,14 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], theta_angle=[0], λ=[15], γ=
                         if re_part && !im_part
                             kernel[1] .+= abs(findmin(kernel[1])[1])
                             kernel[1] ./= findmax(kernel[1])[1]
-                            kernel[1] .-= 0.5
+                            if do_norm; kernel[1] .-= 0.5; end
                             push!(kernels,Gray.((kernel[1])))
 
 
                         elseif im_part && !re_part
                             kernel[2] .+= abs(findmin(kernel[2])[1])
                             kernel[2] ./= findmax(kernel[2])[1]
-                            kernel[2] .-= 0.5
+                            if do_norm; kernel[2] .-= 0.5; end
                             push!(kernels,Gray.((kernel[2])))
 
                         else
@@ -471,4 +471,71 @@ function rearrange_filters_arr(im_filter; showing_number=-1)
         end
     end
     return all_filters
+end
+
+
+# ==========
+function get_mygabor_mask_set(;filt_size=25, βx=[1], βy=[1], theta_angle=[0], f=[15],
+                            psi_angle=[0], re_part=true, im_part=false, do_norm=true)
+
+    kernels = Any[]
+    for beta_x = βx
+        for beta_y = βy
+            for fs in f
+                for angle2 in psi_angle
+                    θ = pi*(angle2/180)
+                    for angle1 = theta_angle
+                        ψ = pi*(angle1/180)
+                        kernel = my_gabor(filt_size, filt_size,
+                                        beta_x, beta_y,
+                                        θ, ψ, fs)
+                        if re_part && !im_part
+                            kernel[1] .+= abs(findmin(kernel[1])[1])
+                            kernel[1] ./= findmax(kernel[1])[1]
+                            if do_norm; kernel[1] .-= 0.5; end
+                            push!(kernels,Gray.((kernel[1])))
+
+
+                        elseif im_part && !re_part
+                            kernel[2] .+= abs(findmin(kernel[2])[1])
+                            kernel[2] ./= findmax(kernel[2])[1]
+                            if do_norm; kernel[2] .-= 0.5; end
+                            push!(kernels,Gray.((kernel[2])))
+
+                        else
+                            @debug "Using abs(re(A)+im(A))"
+                            result = abs.(kernel[1] + kernel[2]im);
+                            result .+= abs(findmin(result)[1])
+                            result ./= findmax(result)[1]
+                            push!(kernels,Gray.())
+                        end
+                    end # angle2
+                end # gamma
+            end # lambda
+        end # angle1
+    end # sigmas
+    return kernels
+end
+
+function my_gabor(size_x::Integer, size_y::Integer, βx::Real, βy::Real, θ::Real, f::Real, ψ::Real)
+    nstds = 3
+    c = cos(θ)
+    s = sin(θ)
+
+    xmax = floor(Int64,size_x/2)
+    ymax = floor(Int64,size_y/2)
+
+    xmin = -xmax
+    ymin = -ymax
+
+    x = [j for i in xmin:xmax,j in ymin:ymax]
+    y = [i for i in xmin:xmax,j in ymin:ymax]
+    xr = x*c + y*s
+    yr = -x*s + y*c
+
+    kernel_real = (exp.((-βx*(xr.*xr) - βy*(yr.*yr)).*cos.(f*xr .+ ψ)))
+    kernel_imag = (exp.((-βy*(xr.*xr) - βy*(yr.*yr)).*sin.(f*xr .+ ψ)))
+
+    kernel = (kernel_real,kernel_imag)
+    return kernel
 end
