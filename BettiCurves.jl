@@ -65,9 +65,9 @@ function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size 
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
     colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
 
-    final_title = "Eirene betti curves, "*plot_title
+    # final_title = "Eirene betti curves, "*plot_title
 
-    plot_ref = plot(title=final_title);
+    plot_ref = plot(title=plot_title);
     max_dim = size(bettis)[1]
     for p = (1+min_dim):(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
