@@ -10,7 +10,7 @@ function plot_square_heatmap(matrix, tick_step, tick_end;
     heat_map = heatmap(matrix,  color=:lightrainbow,
                     title="Order matrix of $(file_n), tiles size:$(sub_img_size)",
                     size=img_size, dpi=img_dpi,
-                    ticks=0:step:end)
+                    ticks=0:tick_step:tick_end)
 
     return heat_map
 end
