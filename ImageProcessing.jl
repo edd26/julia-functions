@@ -384,7 +384,8 @@ if both `re_part` and `im_part` are true, then absolute value of complex number
     [-0.5,0.5]).
 """
 function get_gabor_mask_set(;filt_size=25, σ=[2], theta_rad=[0], λ=[15], γ=[0.2],
-                            psi_rad=[0], re_part=true, im_part=false, do_norm=true)
+                            psi_rad=[0], re_part=true, im_part=false,
+                            do_norm=true, do_negative=true)
 
     kernels = Any[]
     for sigma = σ
@@ -402,26 +403,34 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], theta_rad=[0], λ=[15], γ=[0
                                         ψ)
                         if re_part && !im_part
                             @debug "Doing real part"
-                            kernel[1] .+= abs(findmin(kernel[1])[1])
-                            kernel[1] ./= findmax(kernel[1])[1]
                             if do_norm
+                                kernel[1] .+= abs(findmin(kernel[1])[1])
+                                kernel[1] ./= findmax(kernel[1])[1]
                                 @debug "Doing norm"
-                                kernel[1] .-= 0.5
+                                if do_negative
+                                    kernel[1] .-= 0.5
+                                end
                             end
                             push!(kernels,Gray.((kernel[1])))
 
 
                         elseif im_part && !re_part
-                            kernel[2] .+= abs(findmin(kernel[2])[1])
-                            kernel[2] ./= findmax(kernel[2])[1]
-                            if do_norm; kernel[2] .-= 0.5; end
+                            if do_norm
+                                kernel[2] .+= abs(findmin(kernel[2])[1])
+                                kernel[2] ./= findmax(kernel[2])[1]
+                                if do_negative
+                                     kernel[2] .-= 0.5;
+                                end
+                            end
                             push!(kernels,Gray.((kernel[2])))
 
                         else
                             @debug "Using abs(re(A)+im(A))"
                             result = abs.(kernel[1] + kernel[2]im);
-                            result .+= abs(findmin(result)[1])
-                            result ./= findmax(result)[1]
+                            if do_norm
+                                result .+= abs(findmin(result)[1])
+                                result ./= findmax(result)[1]
+                            end
                             push!(kernels,Gray.())
                         end
                     end # angle2
