@@ -247,3 +247,37 @@ function reduce_arrs_to_min_len(arrs)
     min_size = Inf
     return new_arr
 end
+
+
+"""
+    increase_arrs_to_max_len(arrs)
+
+Takes vector of vectors of different length and returns array of arrays which
+are of the same length. Length in the output is the shortest vector length from
+the input- values above this size are discarded.
+"""
+function increase_arrs_to_max_len(arrs)
+    new_arr = copy(arrs)
+
+    simulation = size(new_arr,1)
+    max_size = 0
+    for m=1:simulation
+        global max_size
+        @debug "Simulation number" m
+        current_size = size(new_arr[m],1)
+        @debug "Current size: " current_size
+        if convert(Float64,current_size) > max_size
+            max_size = current_size
+            @debug "min size changed to: " max_size
+        end
+    end
+    # max_size = Int.(max_size)
+    @debug "Concatenating"
+    for m=1:simulation
+        correct_len_arr = zeros(Int, max_size, 3)
+        correct_len_arr[1:size(arrs[m],1),:] = new_arr[m][:,:]
+        new_arr[m] = correct_len_arr
+    end
+    # min_size = Inf
+    return new_arr
+end
