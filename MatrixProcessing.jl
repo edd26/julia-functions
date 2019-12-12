@@ -50,7 +50,7 @@ end
     get_ordered_matrix(input_matrix)
 
 Takes a `input_matrix` and returns ordered form of this matrix.
-The ordered form i s a matrix which elements represent ordering from smallest to 
+The ordered form i s a matrix which elements represent ordering from smallest to
 highest values in `iput_matrix`.
 
 If `input_matrix` is symmetric, then the returned values are ordered above the
@@ -117,6 +117,17 @@ function get_ordered_matrix(input_matrix)
     @debug "After ordering the first index value is at position: " max_new
     return ordered_matrix
 end
+
+function get_high_dim_ordered_matrix(input_matrix)
+    matrix_size = size(input_matrix)
+    ordered_matrix_3D = zeros(Int, matrix_size)
+
+    for slice = 1:matrix_size[1]
+        ordered_matrix_3D[slice,:,:] = get_ordered_matrix(input_matrix[slice, :, :])
+    end
+    return ordered_matrix_3D
+end
+
 
 
 """
