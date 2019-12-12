@@ -230,7 +230,7 @@ computes average betti curves with their std's.
 """
 function get_avg_bettis_from_JLD(data_sets; range=-1,
                                 maxsim=-1, steps=-1, subset_size=-1, maxdim=3)
-
+# TODO change name- it does not use JLD file
     avg_betti = Array[]
     std_betti = Array[]
 
