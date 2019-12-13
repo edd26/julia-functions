@@ -49,21 +49,23 @@ end
 """
     get_ordered_matrix(input_matrix)
 
-Takes a `input_matrix` and returns ordered form of this matrix.
-The ordered form i s a matrix which elements represent ordering from smallest to
-highest values in `iput_matrix`.
+Takes a @input_matrix and returns ordered form of this matrix.
+The ordered form is a matrix which elements represent ordering from smallest to
+highest values in @input_matrix.
 
-If `input_matrix` is symmetric, then the returned values are ordered above the
-diagonal. Lower diagonal is symetrically copied from values above diagonal.
+If @input_matrix is symmetric, then ordering happens only with upper diagonal.
+Lower diagonal is symetrically copied from values above diagonal.
 
 # Examples
 ```julia-repl
-julia> a = [0 11 12; 11 0 13; 12 13 0];
+julia> a = [0 11 12;
+            11 0 13;
+            12 13 0];
 julia> get_ordered_matrix(a)
 3×3 Array{Int64,2}:
- 0  3  2
- 3  0  1
- 2  1  0
+ 0  1  2
+ 1  0  3
+ 2  3  0
 ```
 """
 function get_ordered_matrix(input_matrix)
@@ -78,8 +80,9 @@ function get_ordered_matrix(input_matrix)
     end
 
     # ====
-    # Get all cartesian indices to be sorted
+    # Get all cartesian indices from input matrix
     matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
+    # Filter out indices below diagonal
     if symetry_order
         matrix_indices = findall(x->x[1]>x[2], matrix_indices)
     else
@@ -89,20 +92,20 @@ function get_ordered_matrix(input_matrix)
     # Put evrything together
     if symetry_order
         # how many elements are above diagonal
-        repetitions = Int(ceil((mat_size * (mat_size-1))/2))
+        repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
     else
         # how many elements are in whole matrix
-        repetitions = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
+        repetition_number = Int(ceil((size(input_matrix)[1] * size(input_matrix)[1])))
     end
 
     # Get all values which will be sorted
-    sorting_values = input_matrix[matrix_indices]
+    sorted_values = input_matrix[matrix_indices]
 
     # Sort indices by values (highest to lowest)
-    ordered_indices = sort!([1:repetitions;],
-                        by=i->(sorting_values[i],matrix_indices[i]))
+    ordered_indices = sort!([1:repetition_number;],
+                        by=i->(sorted_values[i],matrix_indices[i]))
 
-    for k=1:repetitions
+    for k=1:repetition_number
         next_position = ordered_indices[k]
         matrix_index = matrix_indices[next_position]
         ordered_matrix[matrix_index] = k
@@ -111,9 +114,9 @@ function get_ordered_matrix(input_matrix)
 
     # ====
     non_zero_input = findall(x->x!=0,input_matrix)
-    max_orig = findmin(input_matrix[non_zero_input])[2]
+    min_orig = findmin(input_matrix[non_zero_input])[2]
     max_new = findall(x->x==1,ordered_matrix)[1]
-    @debug "Original maximal value was at position: " non_zero_input[max_orig]
+    @debug "Original minimal value was at position: " non_zero_input[min_orig]
     @debug "After ordering the first index value is at position: " max_new
     return ordered_matrix
 end
