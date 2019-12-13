@@ -81,16 +81,16 @@ function generate_random_matrix(matrix_size)
 end
 
 """
-Returns ordering of the @geometric_matrix given as an input. If value @ascending
-is set to true, the values are number from the lowest value, to the highest. If
-false, the values are numbered from highest to the lowest.
+Returns ordering of the @symmetric_matrix. If value @ascending
+is set to true (default), the values are number from the lowest to the highest.
+If false, the values are numbered from highest to the lowest.
 """
-function generate_matrix_ordering(geometric_matrix, ascending = true)
-    matrix_size = size(geometric_matrix, 2)
+function generate_matrix_ordering(symmetric_matrix, ascending = true)
+    matrix_size = size(symmetric_matrix, 2)
     elemnts_above_diagonal = Int((matrix_size^2-matrix_size)/2)
-    matrix_ordering = zeros(Int, 2,elemnts_above_diagonal)
+    matrix_ordering = zeros(Int, 2, elemnts_above_diagonal)
 
-    A = copy(geometric_matrix)
+    A = copy(symmetric_matrix)
 
     (ascending) ? (method=findmax) : (method=findmin)
 
