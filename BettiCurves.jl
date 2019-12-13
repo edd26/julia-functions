@@ -90,7 +90,7 @@ end
 								data_size::String="", do_save=true,
 								extend_title=true, do_normalise=true, max_dim=3,
 								legend_on=true)
-
+z
 Plot Betti curves from 0 up to `max_dim` using `eirene_results` from Eirene library and
 returns handler for figure. Optionally, if `do_save` is set, saves the figure
 or if `do_normalise` is set, sets the steps range to be normalised to the
