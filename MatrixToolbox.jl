@@ -80,39 +80,6 @@ function generate_random_matrix(matrix_size)
     return random_matrix
 end
 
-"""
-Returns ordering of the @symmetric_matrix. If value @ascending
-is set to true (default), the values are number from the lowest to the highest.
-If false, the values are numbered from highest to the lowest.
-"""
-function generate_matrix_ordering(symmetric_matrix, ascending = true)
-    matrix_size = size(symmetric_matrix, 2)
-    elemnts_above_diagonal = Int((matrix_size^2-matrix_size)/2)
-    matrix_ordering = zeros(Int, 2, elemnts_above_diagonal)
-
-    A = copy(symmetric_matrix)
-
-    (ascending) ? (method=findmax) : (method=findmin)
-
-    for element in 1:elemnts_above_diagonal
-    #     Find maximal distance
-        minimal_value = method(A)
-    #     Get the coordinates (only 2 dimensions, because it is distance matrix)
-        matrix_ordering[1,element] = Int(minimal_value[2][1])
-        matrix_ordering[2,element] = Int(minimal_value[2][2])
-    #
-    # #     Zero minval in A (above and below diagonal) so next minval can be found
-        A[matrix_ordering[1,element], matrix_ordering[2,element]] = 0.0
-        A[matrix_ordering[2,element], matrix_ordering[1,element]] = 0.0
-    end
-
-    # change from min to max order to the max to min order (? necessary ?)
-    if ascending
-        matrix_ordering = matrix_ordering[:,end:-1:1]
-    end
-
-    return matrix_ordering
-end
 
 """
 Returns set of graphs generated from the @matrix_ordering. In every succesive
