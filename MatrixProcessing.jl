@@ -45,6 +45,41 @@ function normalize_to_01(matrix; norm_factor=256)
     return normalized_matrix
 end
 
+"""
+    function symmetrize(image)
+
+Takes an @image and return a copy which is symmetric.
+"""
+function symmetrize_image(image)
+  mat_size = size(image,1)
+
+  img= copy(image)
+  # Get all cartesian indices from input matrix
+  matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
+  # Filter out indices below diagonal
+  matrix_indices = findall(x->x[1]>x[2], matrix_indices)
+
+  # Put evrything together
+  # how many elements are above diagonal
+  repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
+
+
+  # Get all values which will be sorted
+  sorted_values = input_matrix[matrix_indices]
+
+  # Sort indices by values (highest to lowest)
+  ordered_indices = sort!([1:repetition_number;],
+                      by=i->(sorted_values[i],matrix_indices[i]))
+
+  for k=1:repetition_number
+      # next_position = matrix_indices[k]
+      matrix_index = matrix_indices[k]
+      # ordered_matrix[matrix_index] = k
+      img[matrix_index[2], matrix_index[1]] = img[matrix_index]
+  end
+  issymmetric(Float64.(img))
+  return img
+end
 
 """
     get_ordered_matrix(input_matrix)
