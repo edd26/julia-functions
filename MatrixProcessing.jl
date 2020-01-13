@@ -63,14 +63,6 @@ function symmetrize_image(image)
   # how many elements are above diagonal
   repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
 
-
-  # Get all values which will be sorted
-  sorted_values = input_matrix[matrix_indices]
-
-  # Sort indices by values (highest to lowest)
-  ordered_indices = sort!([1:repetition_number;],
-                      by=i->(sorted_values[i],matrix_indices[i]))
-
   for k=1:repetition_number
       # next_position = matrix_indices[k]
       matrix_index = matrix_indices[k]
