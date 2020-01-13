@@ -275,3 +275,69 @@ function get_avg_bettis_from_JLD(data_sets; range=-1,
 
     return avg_betti, std_betti
 end
+
+
+"""
+	function get_curves_from_img(img_name)
+
+Computes Betti curves for the image file indicated by @img_name. If the image is
+	not symmetric, then it is the elements below diagonal are copied over the
+	elmenents above the diagonal.
+"""
+function get_curves_from_img(img_name; plot_heatmaps = true, save_heatmaps=false,
+								plot_betti_figrues= true)
+  file_n = split(img_name, ".")[1]
+  img1_gray = Gray.(load(simple_matrix_path*img_name))
+  img_size = size(img1_gray)
+
+  C_ij = Float64.(img1_gray)
+
+  if !issymmetric(C_ij)
+    img1_gray = symmetrize_image(img1_gray)
+    C_ij = Float64.(img1_gray)
+  end
+  img_size = size(C_ij,1)
+
+
+  # ==============================================================================
+  # =============================== Ordered matrix ===============================
+  if size(C_ij,1) > 80
+    @warn "Running Eirene for big matrix: " img_size
+    @warn "Eirene may have trobules with big matrices/images."
+  end
+
+  ordered_matrix = get_ordered_matrix(C_ij)
+
+
+  # ==============================================================================
+  # ============================ Persistance homology ============================
+  C = eirene(ordered_matrix,maxdim=3,model="vr")
+
+
+  # ==============================================================================
+  # ================================ Plot results ================================
+
+  if plot_heatmaps
+
+    full_ordered_matrix= get_ordered_matrix(C_ij)
+    heat_map2 = plot_square_heatmap(full_ordered_matrix, 10, img_size;
+            plt_title = "Order matrix of $(file_n)")
+
+    if save_heatmaps
+        heatm_details = "_heatmap_$(file_n)"
+        savefig(heat_map2, heatmaps_path*"ordering"*heatm_details)
+    end
+  end
+
+  if plot_betti_figrues
+    plot_title = "Betti curves of $(file_n), size=$(img_size) "
+    figure_name = "betti_$(file_n)_n$(img_size)"
+    ref = plot_and_save_bettis(C, plot_title, figure_path; file_name=figure_name,
+                                    do_save=false, extend_title=false,
+    								do_normalise=false, max_dim=3,legend_on=true,
+                                    min_dim=1)
+  end
+  display(img1_gray)
+  display(heat_map2)
+  display(ref)
+end
