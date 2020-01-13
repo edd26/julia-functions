@@ -292,7 +292,6 @@ function increase_arrs_to_max_len(arrs)
     simulation = size(new_arr,1)
     max_size = 0
     for m=1:simulation
-        global max_size
         @debug "Simulation number" m
         current_size = size(new_arr[m],1)
         @debug "Current size: " current_size
