@@ -284,10 +284,11 @@ Computes Betti curves for the image file indicated by @img_name. If the image is
 	not symmetric, then it is the elements below diagonal are copied over the
 	elmenents above the diagonal.
 """
-function get_curves_from_img(img_name; plot_heatmaps = true, save_heatmaps=false,
+function get_curves_from_img(img_name; file_path="",
+									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues= true)
   file_n = split(img_name, ".")[1]
-  img1_gray = Gray.(load(simple_matrix_path*img_name))
+  img1_gray = Gray.(load(file_path*img_name))
   img_size = size(img1_gray)
 
   C_ij = Float64.(img1_gray)
@@ -297,6 +298,8 @@ function get_curves_from_img(img_name; plot_heatmaps = true, save_heatmaps=false
     C_ij = Float64.(img1_gray)
   end
   img_size = size(C_ij,1)
+  # C_ij =-C_ij
+  # C_ij .+= 1
 
 
   # ==============================================================================
