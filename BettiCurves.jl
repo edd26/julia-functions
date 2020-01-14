@@ -1,6 +1,7 @@
 using Plots
 using Eirene
 using Measures
+using Plots.PlotMeasures
 include("MatrixProcessing.jl")
 
 
@@ -71,7 +72,14 @@ function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size 
     max_dim = size(bettis)[1]
     for p = (1+min_dim):(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
-                                                    lc=colors_set[p]);
+                                                    lc=colors_set[p],
+													dpi=300,
+													size=(900,800),
+													lw=2,
+													thickness_scaling=2,
+													top_margin= -20px,
+													left_margin=[-28px 0px],
+													bottom_margin= -32px);
         if legend_on
             plot!(legend=true)
         else
@@ -80,6 +88,7 @@ function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size 
 
     end
     ylabel!("Number of cycles")
+	xlabel!("Edge density")
     return plot_ref
 end
 
@@ -102,6 +111,7 @@ function plot_and_save_bettis(eirene_results, plot_title::String,
 								do_save=true,
 								extend_title=true, do_normalise=true, min_dim=0,
 								max_dim=3, legend_on=true)
+
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
     plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
