@@ -11,11 +11,12 @@ function plot_square_heatmap(matrix, tick_step, tick_end;
                     title=plt_title,
                     size=img_size,
                     dpi=img_dpi,
-                    lw=2,
-                    thickness_scaling=2,
-                    top_margin= -20px,
-                    left_margin=[-28px 0px],
-                    bottom_margin= -20px,
+                    # lw=2,
+                    thickness_scaling=3,
+                    top_margin= -33px,
+                    left_margin=[-50px 0px],
+                    right_margin=[15px 0px],
+                    bottom_margin= -35px,
                     ticks=0:tick_step:tick_end);
 
     return heat_map

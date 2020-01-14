@@ -75,11 +75,11 @@ function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size 
                                                     lc=colors_set[p],
 													dpi=300,
 													size=(900,800),
-													lw=2,
-													thickness_scaling=2,
-													top_margin= -20px,
-													left_margin=[-28px 0px],
-													bottom_margin= -32px);
+													lw=1.5,
+													thickness_scaling=3,
+													top_margin= -28px,
+								                    left_margin=[-33px 0px],
+								                    bottom_margin= -35px);
         if legend_on
             plot!(legend=true)
         else
