@@ -60,26 +60,33 @@ Creates a plot for set of betti numbers stored in `bettis` and return the
 handler to the plot.
 `plot_title` is used for the title of the plot.
 """
-function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size = (width=1200, height=800),
+function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, plot_params= (dpi=300,
+				size=(900,800),
+				lw=1,
+				thickness_scaling=1,
+				top_margin= `:match`,
+				left_margin= `:match`,
+				bottom_margin= `:match`
+				))
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
     colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
 
     # final_title = "Eirene betti curves, "*plot_title
-
-    plot_ref = plot(title=plot_title);
+	plot_ref = plot(title=plot_title);
     max_dim = size(bettis)[1]
     for p = (1+min_dim):(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
                                                     lc=colors_set[p],
-													dpi=300,
-													size=(900,800),
-													lw=1.5,
-													thickness_scaling=3,
-													top_margin= -28px,
-								                    left_margin=[-33px 0px],
-								                    bottom_margin= -35px);
+													dpi=plot_params.dpi,
+													size=plot_params.size,
+													lw=plot_params.lw,
+													thickness_scaling=plot_params.thickness_scaling,
+													top_margin=plot_params.top_margin,
+								                    left_margin=plot_params.left_margin,
+								                    bottom_margin=plot_params.bottom_margin
+													);
         if legend_on
             plot!(legend=true)
         else
@@ -110,11 +117,11 @@ function plot_and_save_bettis(eirene_results, plot_title::String,
 								extension = ".png", data_size::String="",
 								do_save=true,
 								extend_title=true, do_normalise=true, min_dim=0,
-								max_dim=3, legend_on=true)
+								max_dim=3, legend_on=true, plot_params)
 
     bettis = get_bettis(eirene_results, max_dim);
     norm_bettis = normalise_bettis(bettis);
-    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
+    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim, plot_params=plot_params);
 
     if do_save
 		if extend_title && isempty(file_name)
@@ -294,9 +301,71 @@ Computes Betti curves for the image file indicated by @img_name. If the image is
 	not symmetric, then it is the elements below diagonal are copied over the
 	elmenents above the diagonal.
 """
-function get_curves_from_img(img_name; file_path="",
+function get_curves_from_img(img_name, plot_params; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
-								plot_betti_figrues= true)
+								plot_betti_figrues = true)
+  file_n = split(img_name, ".")[1]
+  img1_gray = Gray.(load(file_path*img_name))
+  img_size = size(img1_gray)
+
+  C_ij = Float64.(img1_gray)
+
+  if !issymmetric(C_ij)
+    img1_gray = symmetrize_image(img1_gray)
+    C_ij = Float64.(img1_gray)
+  end
+  img_size = size(C_ij,1)
+  # C_ij =-C_ij
+  # C_ij .+= 1
+
+
+  # ==============================================================================
+  # =============================== Ordered matrix ===============================
+  if size(C_ij,1) > 80
+    @warn "Running Eirene for big matrix: " img_size
+    @warn "Eirene may have trobules with big matrices/images."
+  end
+
+  ordered_matrix = get_ordered_matrix(C_ij)
+
+
+  # ==============================================================================
+  # ============================ Persistance homology ============================
+  C = eirene(ordered_matrix,maxdim=3,model="vr")
+
+
+  # ==============================================================================
+  # ================================ Plot results ================================
+
+  if plot_heatmaps
+
+    full_ordered_matrix= get_ordered_matrix(C_ij)
+    heat_map2 = plot_square_heatmap(full_ordered_matrix, 10, img_size;
+            plt_title = "Order matrix of $(file_n)", plot_params=plot_params)
+
+    if save_heatmaps
+        heatm_details = "_heatmap_$(file_n)"
+        savefig(heat_map2, heatmaps_path*"ordering"*heatm_details)
+    end
+  end
+
+  if plot_betti_figrues
+    plot_title = "Betti curves of $(file_n), size=$(img_size) "
+    figure_name = "betti_$(file_n)_n$(img_size)"
+    ref = plot_and_save_bettis(C, plot_title, figure_path, ; 		file_name=figure_name, plot_params=plot_params,
+                                    do_save=false, extend_title=false,
+    								do_normalise=false, max_dim=3,legend_on=true,
+                                    min_dim=1)
+  end
+  display(img1_gray)
+  display(heat_map2)
+  display(ref)
+end
+
+
+function get_curves_from_img2(img_name; file_path="",
+									plot_heatmaps = true, save_heatmaps=false,
+								plot_betti_figrues = true)
   file_n = split(img_name, ".")[1]
   img1_gray = Gray.(load(file_path*img_name))
   img_size = size(img1_gray)
@@ -345,7 +414,7 @@ function get_curves_from_img(img_name; file_path="",
   if plot_betti_figrues
     plot_title = "Betti curves of $(file_n), size=$(img_size) "
     figure_name = "betti_$(file_n)_n$(img_size)"
-    ref = plot_and_save_bettis(C, plot_title, figure_path; file_name=figure_name,
+    ref = plot_and_save_bettis2(C, plot_title, figure_path, ; 		file_name=figure_name, plot_params=plot_params,
                                     do_save=false, extend_title=false,
     								do_normalise=false, max_dim=3,legend_on=true,
                                     min_dim=1)
@@ -353,4 +422,57 @@ function get_curves_from_img(img_name; file_path="",
   display(img1_gray)
   display(heat_map2)
   display(ref)
+end
+
+function plot_and_save_bettis2(eirene_results, plot_title::String,
+								results_path::String; file_name="",
+								extension = ".png", data_size::String="",
+								do_save=true,
+								extend_title=true, do_normalise=true, min_dim=0,
+								max_dim=3, legend_on=true)
+
+    bettis = get_bettis(eirene_results, max_dim);
+    norm_bettis = normalise_bettis(bettis);
+    plot_ref = plot_bettis2(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
+
+    if do_save
+		if extend_title && isempty(file_name)
+			file_name = "betti_c_"*plot_title*data_size*extension;
+		elseif isempty(file_name)
+			file_name = plot_title*extension
+		elseif isempty(findall(x->x==extension[2:end], split(file_name, ".")))
+			#check for the extension in file name
+			file_name *= extension
+		end
+
+        savefig(plot_ref, results_path*file_name)
+        @info "Saved file as " results_path*file_name
+
+    end
+    return plot_ref
+end
+
+
+function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size = (width=1200, height=800),
+                                        #                        base_dpi = 500)
+    # set_default_plotting_params()
+    cur_colors = get_color_palette(:auto, plot_color(:white), 17)
+    colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
+
+    # final_title = "Eirene betti curves, "*plot_title
+	plot_ref = plot(title=plot_title);
+    max_dim = size(bettis)[1]
+    for p = (1+min_dim):(max_dim)
+        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1)
+													);
+        if legend_on
+            plot!(legend=true)
+        else
+            plot!(legend=false)
+        end
+
+    end
+    ylabel!("Number of cycles")
+	xlabel!("Edge density")
+    return plot_ref
 end
