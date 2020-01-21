@@ -62,7 +62,7 @@ function testing_pariwise_corr()
                 if do_local_corr
                     centers = get_local_centers(points_per_dim, video_dimensions, shift, sub_img_size)
 
-                    extracted_pixels_matrix = get_local_correlations(video_array, centers, sub_img_size, shift)
+                    extracted_pixels_matrix = get_subimg_correlations(video_array, centers, sub_img_size, shift)
                 elseif do_local_grad
                     centers = get_local_centers(points_per_dim, video_dimensions, shift, sub_img_size)
 

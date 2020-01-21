@@ -207,7 +207,7 @@ end
 
 
 """
-    get_local_correlations(video_array, centers, sub_img_size, shift)
+    get_subimg_correlations(video_array, centers, sub_img_size, shift)
 
 Computes the correlation between the subimages and subimages shifted by values
 from range -@shift:@shift and returns array with frames of size
@@ -216,7 +216,7 @@ number of rames in @video_array.
 
 Each of the subimage is center around values stored in  @centers
 """
-function get_local_correlations(video_array, centers, sub_img_size, shift)
+function get_subimg_correlations(video_array, centers, sub_img_size, shift)
     half_size = ceil(Int,(sub_img_size-1)/2)
     half_range = half_size + shift
     h, w, len = get_video_dimension(video_array)
