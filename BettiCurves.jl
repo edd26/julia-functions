@@ -295,13 +295,13 @@ end
 
 
 """
-	function get_curves_from_img(img_name)
+	function get_curves_from_matrix(img_name)
 
 Computes Betti curves for the image file indicated by @img_name. If the image is
 	not symmetric, then it is the elements below diagonal are copied over the
 	elmenents above the diagonal.
 """
-function get_curves_from_img(img_name, plot_params; file_path="",
+function get_curves_from_matrix(img_name, plot_params; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues = true)
   file_n = split(img_name, ".")[1]
@@ -363,7 +363,7 @@ function get_curves_from_img(img_name, plot_params; file_path="",
 end
 
 
-function get_curves_from_img2(img_name; file_path="",
+function get_curves_from_matrix2(img_name; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues = true)
   file_n = split(img_name, ".")[1]
