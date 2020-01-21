@@ -488,3 +488,44 @@ function rearrange_filters_arr(im_filter; showing_number=-1, columns=-1)
     end
     return all_filters
 end
+
+
+
+function get_local_correlations(method::String, img, img_size, sub_img_size;
+                                                        masks = 0,
+                                                        points_per_dim=1,
+                                                        shift=0,
+                                                        with_grad = true)
+    if method == "correlation"
+        @debug "local correlation"
+        centers = get_local_img_centers(points_per_dim, img_size, shift,
+                                                            sub_img_size)
+        extracted_pixels_matrix = get_local_img_correlations(img, centers,
+                                                            sub_img_size, shift)
+
+    elseif  method == "gradient_gabor"
+        @debug "local gradient gabor comparison"
+        centers = get_img_local_centers(img_size, sub_img_size)
+        local_correlations = get_local_img_correlations(img, centers, masks;
+                                                    with_gradient = with_grad)
+
+    elseif  method == "gabor"
+        @debug "local gabor comparison"
+        centers = get_img_local_centers(img_size, sub_img_size)
+        local_correlations = get_local_img_correlations(img, centers, masks )
+
+    elseif  method == "gradient"
+        @debug "local gradient analysis"
+        centers = get_local_img_centers(points_per_dim, img_size, shift,
+                                                       sub_img_size)
+        local_correlations = get_local_img_correlations(img, centers, sub_img_size;
+                                                       with_gradient=with_grad)
+    else
+        indicies_set = get_video_mask(points_per_dim, img_size,
+                            distribution="uniform", patch_params=patch_params)
+        local_correlations = extract_pixels_from_img(img, indicies_set,
+                                                                    img_size)
+    end
+
+    return local_correlations
+end
