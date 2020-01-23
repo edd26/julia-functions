@@ -216,7 +216,7 @@ function bettis_eirene(matr, maxdim;
     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
 		@debug "Inf mintime, maxtime or number of steps."
         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-        return hcat([betticurve(c, dim=d)[:,2] for d=1:maxdim]...)
+        return hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
     end
 
     betts = zeros(numofsteps, maxdim)
