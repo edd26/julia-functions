@@ -198,7 +198,7 @@ end
 # value parameters is given, it returns vector of matrices. If num of steps is
 # given, then it return matrix maxdim x numsteps.
 """
-bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
+bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
 
 Takes the `matr` and computes Betti curves up to `maxdim`. Return matrix only
 with betti curve values
@@ -206,7 +206,8 @@ with betti curve values
 
 Function taken from: https://github.com/alexyarosh/hyperbolic
 """
-function bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
+function bettis_eirene(matr, maxdim;
+							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
     c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
 
     int_length = maxtime-mintime
