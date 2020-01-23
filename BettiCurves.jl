@@ -364,7 +364,134 @@ function get_curves_from_matrix(img_name, plot_params; file_path="",
   display(ref)
 end
 
+"""
+multiscale_matrix_testing(sample_space_dims = 3,
+                                    maxsim=20,
+                                    min_B_dim = 1,
+                                    max_B_dim = 3,
+                                    size_start = 10,
+                                    size_step = 5,
+                                    size_stop = 80; do_random=true)
 
+Function for testing the average number of cycles from geometric and random
+    matrices.
+"""
+function multiscale_matrix_testing(sample_space_dims = 3,
+                                    maxsim=20,
+                                    min_B_dim = 1,
+                                    max_B_dim = 3,
+                                    size_start = 10,
+                                    size_step = 5,
+                                    size_stop = 80; do_random=true)
+    num_of_bettis = length(collect(min_B_dim:max_B_dim))
+
+    if length(sample_space_dims) > 1
+        @warn "Can not do random processing for multiple dimensions"
+        do_random =false
+    end
+
+    geom_mat_results = Any[]
+    if do_random
+        rand_mat_results = Any[]
+        result_list = [geom_mat_results, rand_mat_results]
+    else
+        result_list = [geom_mat_results]
+    end
+
+    for sample_space_dim in sample_space_dims
+
+        repetitions = size_start:size_step:size_stop
+        for space_samples in repetitions
+            @info "Generating data for: " space_samples
+            # ==========================================
+            # ============= Generate data ==============
+            # ===
+            # Generate random matrix
+            if do_random
+                symm_mat_rand = [generate_random_matrix(space_samples) for i=1:maxsim]
+                ordered_mat_rand = [get_ordered_matrix(symm_mat_rand[i]) for i=1:maxsim]
+            end
+
+            # ===
+            # Generate geometric matrix
+            pts_rand = [generate_random_point_cloud(sample_space_dim,space_samples) for i=1:maxsim]
+            symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i=1:maxsim]
+            ordered_mat_geom = [get_ordered_matrix(symm_mat_geom[i]) for i=1:maxsim]
+
+            # ======================================================================
+            # ========================= Do the Betti analysis ======================
+            if do_random
+                set = [ordered_mat_geom, ordered_mat_rand]
+            else
+                set = [ordered_mat_geom]
+            end
+            for matrix_set in set
+                @debug("Betti analysis!")
+                # ===
+                # Generate bettis
+                many_bettis = Array[]
+                for i=1:maxsim
+                    @info "Computing Bettis for: " i
+                    push!(many_bettis,bettis_eirene(matrix_set[i], max_B_dim,
+                                                                    mindim=min_B_dim))
+                end
+
+                # ===
+                # Get maximal number of cycles from each Betti from simulations
+                max_cycles = zeros(maxsim, max_B_dim)
+                for i=1:maxsim,  betti_dim = 1:max_B_dim
+                    @debug("\tFindmax in bettis")
+                    max_cycles[i, betti_dim] = findmax(many_bettis[i][:, betti_dim])[1]
+                end
+
+                # ===
+                # Get the statistics
+                avg_cycles = zeros(1, length(min_B_dim:max_B_dim))
+                std_cycles = zeros(1, length(min_B_dim:max_B_dim))
+                k=1
+                for betti_dim=min_B_dim:max_B_dim
+                    avg_cycles[k] = mean(max_cycles[:, betti_dim])
+                    std_cycles[k] = std(max_cycles[:, betti_dim])
+                    k+=1
+                end
+
+                # ===
+                # Put results into dictionary
+                betti_statistics = Dict()
+                if matrix_set == ordered_mat_geom
+                    @debug("Saving ordered")
+                    betti_statistics["matrix_type"] = "ordered"
+                    betti_statistics["space_dim"] = sample_space_dim
+                    result_list = geom_mat_results
+                else
+                    @debug("Saving radom")
+                    betti_statistics["matrix_type"] = "random"
+                    result_list = rand_mat_results
+                end
+                betti_statistics["space_samples"] = space_samples
+                betti_statistics["simualtions"] = maxsim
+                betti_statistics["min_betti_dim"] = min_B_dim
+                betti_statistics["max_betti_dim"] = max_B_dim
+                betti_statistics["avg_cycles"] = avg_cycles
+                betti_statistics["std_cycles"] = std_cycles
+
+                push!(result_list, betti_statistics)
+            end # matrix type loop
+            @debug("===============")
+        end # matrix_size_loop
+    end # sampled space dimension
+
+    if do_random
+        return geom_mat_results, rand_mat_results
+    else
+        return geom_mat_results
+    end
+end
+
+
+
+
+ # ===============================================
 function get_curves_from_matrix2(img_name; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues = true)
