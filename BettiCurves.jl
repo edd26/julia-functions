@@ -366,7 +366,7 @@ end
 
 """
 multiscale_matrix_testing(sample_space_dims = 3,
-                                    maxsim=20,
+                                    maxsim=5,
                                     min_B_dim = 1,
                                     max_B_dim = 3,
                                     size_start = 10,
@@ -377,7 +377,7 @@ Function for testing the average number of cycles from geometric and random
     matrices.
 """
 function multiscale_matrix_testing(sample_space_dims = 3,
-                                    maxsim=20,
+                                    maxsim=5,
                                     min_B_dim = 1,
                                     max_B_dim = 3,
                                     size_start = 10,
