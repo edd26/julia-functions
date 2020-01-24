@@ -382,7 +382,7 @@ function multiscale_matrix_testing(sample_space_dims = 3,
                                     max_B_dim = 3,
                                     size_start = 10,
                                     size_step = 5,
-                                    size_stop = 80; do_random=true)
+                                    size_stop = 50; do_random=true)
     num_of_bettis = length(collect(min_B_dim:max_B_dim))
 
     if length(sample_space_dims) > 1
