@@ -445,7 +445,7 @@ function multiscale_matrix_testing(sample_space_dims = 3,
 					many_gctime = Float64[]
 					many_memallocs = Base.GC_Diff[]
 				end
-				
+
                 for i=1:maxsim
                     @info "Computing Bettis for: " i
 
@@ -514,11 +514,11 @@ function multiscale_matrix_testing(sample_space_dims = 3,
             @debug("===============")
 			if control_saving
 				if do_random
-					save("multiscale_matrix_testing_$(space_samples).jld",
+					save("multiscale_matrix_testing_$(space_samples)_$(sample_space_dim).jld",
 				 							"rand_mat_results", rand_mat_results,
 	                                        "geom_mat_results", geom_mat_results)
 	            else
-					save("multiscale_matrix_testing_dimension_$(space_samples).jld",
+					save("multiscale_matrix_testing_dimension_$(space_samples)_$(sample_space_dim).jld",
 				 						  "geom_mat_results", geom_mat_results)
 	            end
 			end
