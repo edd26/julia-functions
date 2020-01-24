@@ -74,7 +74,7 @@ function symmetrize_image(image)
 end
 
 """
-    get_ordered_matrix(input_matrix)
+    get_ordered_matrix(input_matrix; assing_same_values=false)
 
 Takes a @input_matrix and returns ordered form of this matrix.
 The ordered form is a matrix which elements represent ordering from smallest to
@@ -82,6 +82,10 @@ highest values in @input_matrix.
 
 If @input_matrix is symmetric, then ordering happens only with upper diagonal.
 Lower diagonal is symetrically copied from values above diagonal.
+
+By default, if there is a geoup of entriess with the same value, they all are
+assigned with the same ordering number. This can be changed with
+@assing_same_values parameter.
 
 # Examples
 ```julia-repl
@@ -94,8 +98,19 @@ julia> get_ordered_matrix(a)
  1  0  3
  2  3  0
 ```
+
+```julia-repl
+julia> a = [0 11 12;
+            11 0 11;
+            12 13 0];
+julia> get_ordered_matrix(a)
+3×3 Array{Int64,2}:
+ 0  1  2
+ 1  0  1
+ 2  1  0
+```
 """
-function get_ordered_matrix(input_matrix)
+function get_ordered_matrix(input_matrix; assing_same_values=false)
     mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
 
