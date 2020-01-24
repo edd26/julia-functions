@@ -375,6 +375,12 @@ multiscale_matrix_testing(sample_space_dims = 3,
 
 Function for testing the average number of cycles from geometric and random
     matrices.
+
+It is possible to save intermidiate results- for that, @control_saving must be
+set true.
+
+Performance of computation of Betti curves can be monitored, if the
+@perform_eavl is set too true. Bydefault, it is set to false.
 """
 function multiscale_matrix_testing(sample_space_dims = 3,
                                     maxsim=5,
@@ -382,7 +388,9 @@ function multiscale_matrix_testing(sample_space_dims = 3,
                                     max_B_dim = 3,
                                     size_start = 10,
                                     size_step = 5,
-                                    size_stop = 50; do_random=true)
+                                    size_stop = 50;
+										do_random=true, control_saving=false,
+										perform_eavl=false)
     num_of_bettis = length(collect(min_B_dim:max_B_dim))
 
     if length(sample_space_dims) > 1
@@ -430,11 +438,30 @@ function multiscale_matrix_testing(sample_space_dims = 3,
                 @debug("Betti analysis!")
                 # ===
                 # Generate bettis
-                many_bettis = Array[]
+				if perform_eavl
+	                many_bettis = Array[]
+					many_timings = Float64[]
+					many_bytes = Float64[]
+					many_gctime = Float64[]
+					many_memallocs = Base.GC_Diff[]
+				end
+				
                 for i=1:maxsim
                     @info "Computing Bettis for: " i
-                    push!(many_bettis,bettis_eirene(matrix_set[i], max_B_dim,
-                                                                    mindim=min_B_dim))
+
+					if perform_eavl
+						results, timing, bytes, gctime, memallocs =
+					 			@timed bettis_eirene(matrix_set[i],
+												max_B_dim, mindim=min_B_dim)
+	                    push!(many_bettis,results)
+						push!(many_timings,timing)
+						push!(many_bytes,bytes)
+						push!(many_gctime,gctime)
+						push!(many_memallocs,memallocs)
+					else
+						push!(many_bettis, bettis_eirene(matrix_set[i],
+												max_B_dim, mindim=min_B_dim))
+					end
                 end
 
                 # ===
@@ -476,9 +503,25 @@ function multiscale_matrix_testing(sample_space_dims = 3,
                 betti_statistics["avg_cycles"] = avg_cycles
                 betti_statistics["std_cycles"] = std_cycles
 
+				if perform_eavl
+					betti_statistics["many_timings"] = many_timings
+					betti_statistics["many_bytes"] = many_bytes
+					betti_statistics["many_gctime"] = many_gctime
+					betti_statistics["many_memallocs"] = many_memallocs
+				end
                 push!(result_list, betti_statistics)
             end # matrix type loop
             @debug("===============")
+			if control_saving
+				if do_random
+					save("multiscale_matrix_testing_$(space_samples).jld",
+				 							"rand_mat_results", rand_mat_results,
+	                                        "geom_mat_results", geom_mat_results)
+	            else
+					save("multiscale_matrix_testing_dimension_$(space_samples).jld",
+				 						  "geom_mat_results", geom_mat_results)
+	            end
+			end
         end # matrix_size_loop
     end # sampled space dimension
 
