@@ -100,7 +100,7 @@ julia> get_ordered_matrix(a)
 ```
 
 ```julia-repl
-julia> a = [0 11 12;
+julia> hehe = [0 11 12;
             11 0 11;
             12 13 0];
 julia> get_ordered_matrix(a)
@@ -145,14 +145,34 @@ function get_ordered_matrix(input_matrix; assing_same_values=false)
     sorted_values = input_matrix[matrix_indices]
 
     # Sort indices by values (highest to lowest)
+    # Create a list of indices, which corresponding valeus are ordered
     ordered_indices = sort!([1:repetition_number;],
                         by=i->(sorted_values[i],matrix_indices[i]))
 
+    ordering_number = 1
     for k=1:repetition_number
+        # global ordering_number
         next_position = ordered_indices[k]
         matrix_index = matrix_indices[next_position]
-        ordered_matrix[matrix_index] = k
-        ordered_matrix[matrix_index[2], matrix_index[1]] = k
+
+        if assing_same_values && k!=1
+            @info "I am here"
+            old_positoin = ordered_indices[k-1]
+            old_matrix_index = matrix_indices[old_positoin]
+            if input_matrix[old_matrix_index] == input_matrix[matrix_index]
+                @info "\tI am here2"
+                ordered_matrix[matrix_index] = ordering_number-1
+                ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
+            else
+                ordered_matrix[matrix_index] = ordering_number
+                ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
+                ordering_number+=1
+            end
+        else
+            ordered_matrix[matrix_index] = ordering_number
+            ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
+            ordering_number+=1
+        end
     end
 
     # ====
