@@ -458,7 +458,7 @@ function multiscale_matrix_testing(sample_space_dims = 3,
             pts_rand = [generate_random_point_cloud(sample_space_dim,space_samples) for i=1:maxsim]
             symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i=1:maxsim]
             ordered_mat_geom = [get_ordered_matrix(symm_mat_geom[i];
-									assing_same_values=false)) for i=1:maxsim]
+									assing_same_values=false) for i=1:maxsim]
 
             # ======================================================================
             # ========================= Do the Betti analysis ======================
