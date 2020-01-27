@@ -111,6 +111,7 @@ julia> get_ordered_matrix(a)
 ```
 """
 function get_ordered_matrix(input_matrix; assing_same_values=false)
+
     mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
 
@@ -126,12 +127,12 @@ function get_ordered_matrix(input_matrix; assing_same_values=false)
     matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
     # Filter out indices below diagonal
     if symetry_order
-        matrix_indices = findall(x->x[1]>x[2], matrix_indices)
+        matrix_indices = findall(x->x[1]<x[2], matrix_indices)
     else
         matrix_indices = findall(x->true, matrix_indices)
     end
 
-    # Put evrything together
+    # Get number of elements to be ordered
     if symetry_order
         # how many elements are above diagonal
         repetition_number = Int(ceil((mat_size * (mat_size-1))/2))
