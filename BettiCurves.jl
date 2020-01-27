@@ -216,18 +216,34 @@ function bettis_eirene(matr, maxdim;
     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
 		@debug "Inf mintime, maxtime or number of steps."
         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
+		number_of_steps = length(betticurve(c, dim=0)[:,1])
+		number_of_bettis = maxdim-mindim+1
+
+		result = zeros(number_of_steps, number_of_bettis)
 		try
-			result = hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
+			iter=1
+			for d=mindim:maxdim
+				bett_res = betticurve(c, dim=d)[:,2]
+				if size(bett_res,1) == 0
+					@warn "Computed betti curve had 0 elements, creating vector with zeros"
+					bett_res = zeros(size(result,1))
+				end
+				result[:,iter] = bett_res
+				iter+=1
+			end
 			@debug size(result)
         	return result
 		catch err
 			if isa(err, DimensionMismatch)
 				@error "Dimension mismatch error"
+				for d=mindim:maxdim
+					@error size(betticurve(c, dim=d))
+				end
 				@error hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
 				throw(err)
 	 	   else
-			   @error "Unknown error occurred"
-			   throw(err)
+				@error "Unknown error occurred"
+				throw(err)
 	 	   end
 		end
    end
