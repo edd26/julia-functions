@@ -308,7 +308,8 @@ function get_avg_bettis_from_JLD(data_sets; range=-1,
             end
 
             @debug "=== Next m" m
-            ordered_matrix = get_ordered_matrix(matrix_set[m][subset_range,subset_range])
+            ordered_matrix = get_ordered_matrix(matrix_set[m][subset_range,subset_range];
+													assing_same_values=false)
             new_bettis = bettis_eirene(ordered_matrix, maxdim)
             push!(bettis_set, new_bettis)
         end
@@ -357,7 +358,7 @@ function get_curves_from_matrix(img_name, plot_params; file_path="",
     @warn "Eirene may have trobules with big matrices/images."
   end
 
-  ordered_matrix = get_ordered_matrix(C_ij)
+  ordered_matrix = get_ordered_matrix(C_ij; assing_same_values=false)
 
 
   # ==============================================================================
@@ -370,7 +371,7 @@ function get_curves_from_matrix(img_name, plot_params; file_path="",
 
   if plot_heatmaps
 
-    full_ordered_matrix= get_ordered_matrix(C_ij)
+    full_ordered_matrix= get_ordered_matrix(C_ij; assing_same_values=false)
     heat_map2 = plot_square_heatmap(full_ordered_matrix, 10, img_size;
             plt_title = "Order matrix of $(file_n)", plot_params=plot_params)
 
@@ -446,15 +447,18 @@ function multiscale_matrix_testing(sample_space_dims = 3,
             # ===
             # Generate random matrix
             if do_random
-                symm_mat_rand = [generate_random_matrix(space_samples) for i=1:maxsim]
-                ordered_mat_rand = [get_ordered_matrix(symm_mat_rand[i]) for i=1:maxsim]
+                symm_mat_rand = [generate_random_matrix(space_samples) for
+		 															i=1:maxsim]
+                ordered_mat_rand = [get_ordered_matrix(symm_mat_rand[i];
+									assing_same_values=false) for i=1:maxsim]
             end
 
             # ===
             # Generate geometric matrix
             pts_rand = [generate_random_point_cloud(sample_space_dim,space_samples) for i=1:maxsim]
             symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i=1:maxsim]
-            ordered_mat_geom = [get_ordered_matrix(symm_mat_geom[i]) for i=1:maxsim]
+            ordered_mat_geom = [get_ordered_matrix(symm_mat_geom[i];
+									assing_same_values=false)) for i=1:maxsim]
 
             # ======================================================================
             # ========================= Do the Betti analysis ======================
@@ -592,7 +596,7 @@ function get_curves_from_matrix2(img_name; file_path="",
     @warn "Eirene may have trobules with big matrices/images."
   end
 
-  ordered_matrix = get_ordered_matrix(C_ij)
+  ordered_matrix = get_ordered_matrix(C_ij; assing_same_values=false)
 
 
   # ==============================================================================
@@ -605,7 +609,7 @@ function get_curves_from_matrix2(img_name; file_path="",
 
   if plot_heatmaps
 
-    full_ordered_matrix= get_ordered_matrix(C_ij)
+    full_ordered_matrix= get_ordered_matrix(C_ij; assing_same_values=false)
     heat_map2 = plot_square_heatmap(full_ordered_matrix, 10, img_size;
             plt_title = "Order matrix of $(file_n)")
 
