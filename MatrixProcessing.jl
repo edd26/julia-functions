@@ -100,14 +100,23 @@ julia> get_ordered_matrix(a)
 ```
 
 ```julia-repl
-julia> hehe = [0 11 12;
-            11 0 11;
-            12 13 0];
-julia> get_ordered_matrix(a)
-3×3 Array{Int64,2}:
- 0  1  2
- 1  0  1
- 2  1  0
+julia> b = [38 37 36 30;
+            37 34 30 32;
+            36 30 31 30;
+            30 32 30 29]
+julia> get_ordered_matrix(b; assing_same_values=false)
+4×4 Array{Int64,2}:
+0  6  5  2
+6  0  1  4
+5  1  0  3
+2  4  3  0
+
+julia> get_ordered_matrix(b; assing_same_values=true)
+4×4 Array{Int64,2}:
+0  4  3  1
+4  0  1  2
+3  1  0  1
+1  2  1  0
 ```
 """
 function get_ordered_matrix(input_matrix; assing_same_values=false)
