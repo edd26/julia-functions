@@ -156,11 +156,9 @@ function get_ordered_matrix(input_matrix; assing_same_values=false)
         matrix_index = matrix_indices[next_position]
 
         if assing_same_values && k!=1
-            @info "I am here"
             old_positoin = ordered_indices[k-1]
             old_matrix_index = matrix_indices[old_positoin]
             if input_matrix[old_matrix_index] == input_matrix[matrix_index]
-                @info "\tI am here2"
                 ordered_matrix[matrix_index] = ordering_number-1
                 ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
             else
