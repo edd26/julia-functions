@@ -471,8 +471,8 @@ function multiscale_matrix_testing(sample_space_dims = 3,
                 @debug("Betti analysis!")
                 # ===
                 # Generate bettis
+				many_bettis = Array[]
 				if perform_eavl
-	                many_bettis = Array[]
 					many_timings = Float64[]
 					many_bytes = Float64[]
 					many_gctime = Float64[]
