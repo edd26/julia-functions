@@ -87,6 +87,8 @@ By default, if there is a geoup of entriess with the same value, they all are
 assigned with the same ordering number. This can be changed with
 @assing_same_values parameter.
 
+Symetry ordering can be froced with @force_symmetry parameter.
+
 # Examples
 ```julia-repl
 julia> a = [0 11 12;
@@ -119,12 +121,13 @@ julia> get_ordered_matrix(b; assing_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(input_matrix; assing_same_values=false)
+function get_ordered_matrix(input_matrix; assing_same_values=false,
+                                                        force_symmetry=false)
 
     mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
 
-    if issymmetric(input_matrix)
+    if issymmetric(input_matrix) || force_symmetry
         symetry_order = true
     else
         symetry_order = false
