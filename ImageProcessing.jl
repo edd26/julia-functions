@@ -105,9 +105,10 @@ function get_local_img_correlations(img, centers, sub_img_size;
     for index = centers
         c_x = index[1]
         c_y = index[2]
-        subimage = img[(c_x-half_range):(c_x+half_range),
-                        (c_y-half_range):(c_y+half_range)]
-        center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+        c_x_range = (c_x-half_range):(c_x+half_range)
+        c_y_range = (c_y-half_range):(c_y+half_range)
+        subimage = img[c_x_range,c_y_range]
+        center = img[c_x_range, c_y_range]
 
         corelation = center .* subimage
         corelation = sum(corelation)
