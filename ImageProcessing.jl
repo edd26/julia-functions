@@ -477,18 +477,18 @@ how many of the element from `im_fiter` are displayed.
 `im_filters` is an array with elements of type Matrix{Gray}.
 """
 function rearrange_filters_arr(im_filter; showing_number=-1, columns=-1)
-    mask_size = size(masks[1],1)
-    masks_num = length(masks)
-    if showing_number == -1 || showing_number > masks_num
-        max_indeks = masks_num
+    mask_size = size(im_filter[1],1)
+    im_filter_num = length(im_filter)
+    if showing_number == -1 || showing_number > im_filter_num
+        max_indeks = im_filter_num
     else
         max_indeks = showing_number
     end
 
     if columns == -1
-        columns = Int(ceil(sqrt(masks_num)))
+        columns = Int(ceil(sqrt(im_filter_num)))
     end
-    rows= Int(ceil(masks_num/columns))
+    rows= Int(ceil(im_filter_num/columns))
 
     all_filters = zeros(Gray, rows*mask_size, columns*mask_size)
 
@@ -503,7 +503,7 @@ function rearrange_filters_arr(im_filter; showing_number=-1, columns=-1)
             if mask_index > max_indeks
                 break
             else
-                all_filters[row_range, col_range] = masks[mask_index]
+                all_filters[row_range, col_range] = im_filter[mask_index]
                 mask_index += 1
             end
         end
