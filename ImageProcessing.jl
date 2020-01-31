@@ -226,7 +226,7 @@ separately, resulting in rectangular grid.
 
 It is possible to set overlap of the tiles with @overlap parameter. By default
 it is set to zero, but can be any pixel value smaller that @sub_img_size. If
-@overlap is set to value in range (0,1], a fraction of @sub_img_size is used
+@overlap is set to value in range (0,1], a fraction of @sub_img_size is used.
 """
 function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
                                 overlap=0)
@@ -235,10 +235,13 @@ function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
     @assert sub_img_size > 0 "sub_img_size must be positive number"
     @assert overlap<=sub_img_size "The overlap is biger than subimage size!"
     @assert overlap >= 0 "overlap must be positive"
-    # TODO Applied teproray solution here, so it works only for local gradients
+
     centers = CartesianIndex[]
 
     start_ind = ceil(Int, sub_img_size/2)
+    if overlap>0 && overlap<1
+        overlap = floor(Int, sub_img_size*overlap)
+    end
 
     if use_square
         size_v = findmin(img_size)[1]
@@ -514,7 +517,8 @@ function get_local_correlations(method::String, img, img_size, sub_img_size;
                                                         masks = 0,
                                                         points_per_dim=1,
                                                         shift=0,
-                                                        with_grad = true)
+                                                        with_grad = true,
+                                                        overlap = 0)
     if method == "correlation"
         @debug "local correlation"
         centers = get_local_img_centers(points_per_dim, img_size, shift,
@@ -530,7 +534,7 @@ function get_local_correlations(method::String, img, img_size, sub_img_size;
 
     elseif  method == "gabor"
         @debug "local gabor comparison"
-        centers = get_img_local_centers(img_size, sub_img_size)
+        centers = get_img_local_centers(img_size, sub_img_size; overlap = overlap)
         local_correlations = get_local_img_correlations(img, centers, masks )
 
     elseif  method == "gradient"
