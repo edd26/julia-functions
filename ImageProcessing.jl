@@ -219,27 +219,46 @@ Tiles the image of size @img_size into square subimages of size @sub_img_size
 and returns vector with CartesianIndex coordinates of the subimages centre in
 original image.
 
-Takes smaller value from @img_size and then divides it by @sub_img_size.
-Resulting value will be the number of returned subimages per dimension.
+By default, takes smaller value from @img_size and then divides it by
+@sub_img_size. Resulting value will be the number of returned subimages per
+dimension. If @use_square is set to false, then evry dimension is treated
+separately, resulting in rectangular grid.
+
+It is possible to set overlap of the tiles with @overlap parameter. By default
+it is set to zero, but can be any pixel value smaller that @sub_img_size. If
+@overlap is set to value in range (0,1], a fraction of @sub_img_size is used
 """
-function get_img_local_centers(img_size, sub_img_size=10)
+function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
+                                overlap=0)
+
+    @assert sub_img_size < findmin(img_size)[1] "@sub_img_size is bigger than image!"
+    @assert sub_img_size > 0 "sub_img_size must be positive number"
+    @assert overlap<=sub_img_size "The overlap is biger than subimage size!"
+    @assert overlap >= 0 "overlap must be positive"
     # TODO Applied teproray solution here, so it works only for local gradients
-    min_va,  = findmin(img_size)
-    if sub_img_size > min_va
-        throw(BoundsError( "`sub_img_size` is bigger than original image."))
-    end
+    centers = CartesianIndex[]
 
     start_ind = ceil(Int, sub_img_size/2)
-    last_ind = min_va - start_ind
 
-    set = broadcast(floor, Int, range(start_ind, step=sub_img_size,  stop=last_ind))
-    num_indexes = size(set,1)
+    if use_square
+        size_v = findmin(img_size)[1]
+        size_h = findmin(img_size)[1]
+    else
+        size_v = img_size[1]
+        size_h = img_size[2]
+    end
 
-    centers = Any[]
-    for row = 1:num_indexes
-        for column = 1:num_indexes
-            push!(centers, CartesianIndex(set[row], set[column]))
-        end
+    last_ind_v = size_v - start_ind
+    last_ind_h = size_h - start_ind
+
+    val_range_v = floor.(Int, range(start_ind, step=sub_img_size-overlap,  stop=last_ind_v))
+    val_range_h = floor.(Int, range(start_ind, step=sub_img_size-overlap,  stop=last_ind_h))
+
+    num_indexes_v = size(val_range_v,1)
+    num_indexes_h = size(val_range_h,1)
+
+    for row = 1:num_indexes_v, column = 1:num_indexes_h
+        push!(centers, CartesianIndex(val_range_v[row], val_range_h[column]))
     end
     return centers
 end
