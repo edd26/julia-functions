@@ -1,4 +1,4 @@
-using Statistics
+ceil(Int,using Statistics
 using Combinatorics
 using ImageFiltering
 
@@ -314,24 +314,24 @@ function get_video_mask(points_per_dim, video_dimensions;
     spread=patch_params["spread"]
 
     if x == 1
-        x = Int64(floor(video_width/2))
+        x = floor(Int,video_width/2)
         @warn "Given x is to close to the border. Seeting the value to " x
-    elseif x < Int64(ceil(points_per_dim/2))
-        x = Int64(ceil(points_per_dim/2))
+    elseif x < ceil(Int,points_per_dim/2)
+        x = ceil(Int,points_per_dim/2)
         @warn "Given x is to close to the border. Seeting the value to " x
-    elseif x > video_width-Int64(ceil(points_per_dim/2))
-        x = video_width - Int64(ceil(points_per_dim/2))
+    elseif x > video_width-ceil(Int,points_per_dim/2)
+        x = video_width - ceil(Int,points_per_dim/2)
         @warn "Given x is to close to the border. Seeting the value to " x
     end
 
     if y == 1
-        y = Int64(floor(video_height/2))
+        y = floor(Int,video_height/2)
         @warn "Given y is to close to the border. Seeting the value to " y
-    elseif y < Int64(ceil(points_per_dim/2))
-        y = Int64(ceil(points_per_dim/2))
+    elseif y < ceil(Int,points_per_dim/2)
+        y = ceil(Int,points_per_dim/2)
         @warn "Given y is to close to the border. Seeting the value to " y
-    elseif y > video_height-Int64(ceil(points_per_dim/2))
-        y = video_height - Int64(ceil(points_per_dim/2))
+    elseif y > video_height-ceil(Int,points_per_dim/2)
+        y = video_height - ceil(Int,points_per_dim/2)
         @warn "Given y is to close to the border. Seeting the value to " y
     end
 
@@ -344,8 +344,8 @@ function get_video_mask(points_per_dim, video_dimensions;
         rows = points_per_dim
 
         # +1 is used so that the number of points returned is as requested
-        row_step = Int64(floor(video_height/rows))
-        column_step = Int64(floor(video_width/columns))
+        row_step = floor(Int,video_height/rows)
+        column_step = floor(Int,video_width/columns)
 
         (video_height/row_step != points_per_dim) ? row_step+=1 : row_step
         (video_width/column_step !=
