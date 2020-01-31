@@ -215,11 +215,11 @@ end
 """
     get_img_local_centers(img_size, sub_img_size=10)
 
-Tiles the image of size `img_size` into square subimages of size `sub_img_size`
+Tiles the image of size @img_size into square subimages of size @sub_img_size
 and returns vector with CartesianIndex coordinates of the subimages centre in
 original image.
 
-Takes smaller value from `img_size` and then divides it by `sub_img_size`.
+Takes smaller value from @img_size and then divides it by @sub_img_size.
 Resulting value will be the number of returned subimages per dimension.
 """
 function get_img_local_centers(img_size, sub_img_size=10)
