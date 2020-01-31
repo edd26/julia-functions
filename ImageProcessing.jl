@@ -149,8 +149,10 @@ function get_local_img_correlations(img, centers, masks; with_gradient=false)
     for index = centers
         c_x = index[1]
         c_y = index[2]
+        c_x_range = (c_x-half_range):(c_x+half_range)
+        c_y_range = (c_y-half_range):(c_y+half_range)
 
-        center = img[(c_x-half_size):(c_x+half_size), (c_y-half_size):(c_y+half_size)]
+        center = img[c_x_range, c_y_range]
         mask_pos = 1
         for mask in masks
 
