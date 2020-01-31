@@ -216,36 +216,7 @@ function bettis_eirene(matr, maxdim;
     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
 		@debug "Inf mintime, maxtime or number of steps."
         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-		number_of_steps = length(betticurve(c, dim=0)[:,1])
-		number_of_bettis = maxdim-mindim+1
-
-		result = zeros(number_of_steps, number_of_bettis)
-		try
-			iter=1
-			for d=mindim:maxdim
-				bett_res = betticurve(c, dim=d)[:,2]
-				if size(bett_res,1) == 0
-					@warn "Computed betti curve had 0 elements, creating vector with zeros"
-					bett_res = zeros(size(result,1))
-				end
-				result[:,iter] = bett_res
-				iter+=1
-			end
-			@debug size(result)
-        	return result
-		catch err
-			if isa(err, DimensionMismatch)
-				@error "Dimension mismatch error"
-				for d=mindim:maxdim
-					@error size(betticurve(c, dim=d))
-				end
-				@error hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
-				throw(err)
-	 	   else
-				@error "Unknown error occurred"
-				throw(err)
-	 	   end
-		end
+		result = vectorize_bettis(c, maxdim, mindim)
    end
 
     betts = zeros(numofsteps, maxdim)
@@ -568,6 +539,44 @@ function multiscale_matrix_testing(sample_space_dims = 3,
 end
 
 
+"""
+	vectorize_bettis(eirene_results, maxdim, mindim)
+
+Returns the betti curves in the form of matrix, which rows are Betti values, and
+columns are Betti dimensions starting with @mindim up to @maxdim.
+"""
+function vectorize_bettis(eirene_results, maxdim, mindim)
+	number_of_steps = length(betticurve(eirene_results, dim=0)[:,1])
+	number_of_bettis = maxdim-mindim+1
+
+	result = zeros(number_of_steps, number_of_bettis)
+	try
+		iter=1
+		for d=mindim:maxdim
+			bett_res = betticurve(eirene_results, dim=d)[:,2]
+			if size(bett_res,1) == 0
+				@warn "Computed betti curve had 0 elements, creating vector with zeros"
+				bett_res = zeros(size(result,1))
+			end
+			result[:,iter] = bett_res
+			iter+=1
+		end
+		@debug size(result)
+		return result
+	catch err
+		if isa(err, DimensionMismatch)
+			@error "Dimension mismatch error"
+			for d=mindim:maxdim
+				@error size(betticurve(c, dim=d))
+			end
+			@error hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
+			throw(err)
+	   else
+			@error "Unknown error occurred"
+			throw(err)
+	   end
+	end
+end
 
 
  # ===============================================
