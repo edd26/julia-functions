@@ -17,15 +17,15 @@ end
 
 
 """
-	get_bettis(results_eirene, max_dim)
+	get_bettis(results_eirene::Dict, max_dim::Integer; min_dim=1)
 
 Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
 the `results_eirene` dictionary.
 """
-function get_bettis(results_eirene::Dict, max_dim::Integer)
-    bettis  = Matrix{Float64}[]
-    for d =1:(max_dim+1)
-        result = betticurve(results_eirene, dim=d-1)
+function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim=1)
+    bettis = Matrix{Float64}[]
+    for d =min_dim:max_dim
+        result = betticurve(results_eirene, dim=d)
         push!(bettis, result)
     end
     return bettis
