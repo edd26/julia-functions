@@ -1,3 +1,4 @@
+using Plots
 """
     plot_square_heatmap(matrix, tick_step, tick_end;
                                 plt_title, img_size=(900, 800), img_dpi=300)
@@ -10,9 +11,9 @@ function plot_square_heatmap(matrix, tick_step, tick_end;
                                 				size=(900,800),
                                 				lw=1,
                                 				thickness_scaling=1,
-                                				top_margin= 0px,
-                                				left_margin=[0px 0px],
-                                				bottom_margin= 0px
+                                				top_margin= 0,
+                                				left_margin=[0 0],
+                                				bottom_margin= 0
                                 				),)
     heat_map = heatmap(matrix,  color=:lightrainbow,
                     title=plt_title,
