@@ -187,10 +187,14 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
 
     # ====
     non_zero_input = findall(x->x!=0,input_matrix)
-    min_orig = findmin(input_matrix[non_zero_input])[2]
-    max_new = findall(x->x==1,ordered_matrix)[1]
-    @debug "Original minimal value was at position: " non_zero_input[min_orig]
-    @debug "After ordering the first index value is at position: " max_new
+    if !isempty(non_zero_input)
+        min_orig = findmin(input_matrix[non_zero_input])[2]
+        max_new = findall(x->x==1,ordered_matrix)[1]
+        @debug "Original minimal value was at position: " non_zero_input[min_orig]
+        @debug "After ordering the first index value is at position: " max_new
+    else
+        @warn "All values in input matrix were zeros!"
+    end
     return ordered_matrix
 end
 
