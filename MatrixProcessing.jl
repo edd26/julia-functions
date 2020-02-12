@@ -161,7 +161,7 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
     ordered_indices = sort!([1:repetition_number;],
                         by=i->(sorted_values[i],matrix_indices[i]))
 
-    ordering_number = 1
+    ordering_number = 0
     for k=1:repetition_number
         # global ordering_number
         next_position = ordered_indices[k]
