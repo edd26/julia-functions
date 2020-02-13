@@ -16,17 +16,17 @@ function set_default_plotting_params(;upscale=2)
 end
 
 
-"""
-Uses betticurve function to generate range of Betti curves.
-"""
-function get_bettis(results_eirene, max_dim)
-    bettis  = Matrix{Float64}[]
-    for d =1:(max_dim+1)
-        result = betticurve(results_eirene, dim=d-1)
-        push!(bettis, result)
-    end
-    return bettis
-end
+# """
+# Uses betticurve function to generate range of Betti curves.
+# """
+# function get_bettis(results_eirene, max_dim)
+#     bettis  = Matrix{Float64}[]
+#     for d =1:(max_dim+1)
+#         result = betticurve(results_eirene, dim=d-1)
+#         push!(bettis, result)
+#     end
+#     return bettis
+# end
 
 """
 Normalise the horizontal values of the Eirene betti numbers.
