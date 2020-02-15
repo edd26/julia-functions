@@ -101,6 +101,49 @@ end
 
 
 """
+	pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+
+PLots collection of Betti curves of rank 'bett-num'. Every successive plot has
+lower opacity than predecessor.  'step' defines step between collection elements
+that are ploted. By default, plot is displayed after carteation. This can be
+disabled by setting 'show_plt' to false.
+
+Color of the plot can be set with 'R', 'G', 'B' parameters.
+"""
+function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+	step>0 || error("Step should be natural number!")
+	bettis_total = size(bettis_collection,1)
+	colors_set = zeros(Float64, bettis_total,4)
+	colors_set[:,1] .= R
+	colors_set[:,2] .= G
+	colors_set[:,3] .= B
+
+	x = 0
+	y = bettis_total * 0.1
+	va_range = collect(range(bettis_total+x, y, length=bettis_total))
+
+	colors_set[:,4] .= va_range/findmax(va_range)[1]
+	rgba_set = RGBA[]
+	for k = 1:size(colors_set,1)
+		push!(rgba_set, RGBA(colors_set[k,1],colors_set[k,2],colors_set[k,3],colors_set[k,4]))
+	end
+
+	plt_reference = plot(1, label="")
+	for b = 1:step:bettis_total
+		betti = bettis_collection[b]
+		x_vals_1 = (1:size(betti[:,bett_num],1))/size(betti[:,bett_num],1)
+		plot!(x_vals_1, betti[:,bett_num], lc=rgba_set[b],
+					label="\\beta_($(bett_num)), targets=$(b)")
+	end
+	plot!(legend=true, )
+
+	show_plt && display(plt_reference)
+	return plt_reference
+end
+
+
+
+"""
 	plot_and_save_bettis(eirene_results, plot_title::String,
 								results_path::String; extension = ".png",
 								data_size::String="", do_save=true,
