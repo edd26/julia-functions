@@ -128,13 +128,15 @@ function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, 
 		push!(rgba_set, RGBA(colors_set[k,1],colors_set[k,2],colors_set[k,3],colors_set[k,4]))
 	end
 
-	plt_reference = plot(1, label="")
+	plt_reference = plot(1, title="Betti curves collection", label="")
 	for b = 1:step:bettis_total
 		betti = bettis_collection[b]
 		x_vals_1 = (1:size(betti[:,bett_num],1))/size(betti[:,bett_num],1)
 		plot!(x_vals_1, betti[:,bett_num], lc=rgba_set[b],
 					label="\\beta_($(bett_num)), targets=$(b)")
 	end
+	xlabel!("Normalised steps")
+	ylabel!("Rank")
 	plot!(legend=true, )
 
 	show_plt && display(plt_reference)
