@@ -117,6 +117,8 @@ function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, 
 	colors_set[:,1] .= R
 	colors_set[:,2] .= G
 	colors_set[:,3] .= B
+	max_betti = get_max_betti_from_collection(bettis_collection)
+
 
 	x = 0
 	y = bettis_total * 0.1
@@ -134,6 +136,7 @@ function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, 
 		x_vals_1 = (1:size(betti[:,bett_num],1))/size(betti[:,bett_num],1)
 		plot!(x_vals_1, betti[:,bett_num], lc=rgba_set[b],
 					label="\\beta_($(bett_num)), targets=$(b)")
+		plot!(ylim=(0,max_betti))
 	end
 	xlabel!("Normalised steps")
 	ylabel!("Rank")
@@ -143,6 +146,17 @@ function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, 
 	return plt_reference
 end
 
+function get_max_betti_from_collection(bettis_collection;dim=1)
+	max_betti = 0
+    for betti = bettis_collection
+        # global max_betti
+        local_max = findmax(betti)[1]
+        if (local_max > max_betti)
+            max_betti = local_max
+        end
+    end
+	return max_betti
+end
 
 
 """
