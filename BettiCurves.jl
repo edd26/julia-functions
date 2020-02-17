@@ -110,15 +110,15 @@ disabled by setting 'show_plt' to false.
 
 Color of the plot can be set with 'R', 'G', 'B' parameters.
 """
-function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
-	step>0 || error("Step should be natural number!")
+function pretty_plot_bettis(bettis_collection, bett_num, max_rank; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+	step>0 || error("Steps should be natural number!")
 	bettis_total = size(bettis_collection,1)
 	colors_set = zeros(Float64, bettis_total,4)
 	colors_set[:,1] .= R
 	colors_set[:,2] .= G
 	colors_set[:,3] .= B
 	max_betti = get_max_betti_from_collection(bettis_collection)
-
+	@info "max_betti" max_betti
 
 	x = 0
 	y = bettis_total * 0.1
@@ -130,16 +130,16 @@ function pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, 
 		push!(rgba_set, RGBA(colors_set[k,1],colors_set[k,2],colors_set[k,3],colors_set[k,4]))
 	end
 
-	plt_reference = plot(1, title="Betti curves collection", label="")
+	plt_reference = plot(1, title="Betti curves collection, rank $(bett_num)", label="")
 	for b = 1:step:bettis_total
 		betti = bettis_collection[b]
 		x_vals_1 = (1:size(betti[:,bett_num],1))/size(betti[:,bett_num],1)
 		plot!(x_vals_1, betti[:,bett_num], lc=rgba_set[b],
-					label="\\beta_($(bett_num)), targets=$(b)")
+					label="rank=$(max_rank-b)")
 		plot!(ylim=(0,max_betti))
 	end
 	xlabel!("Normalised steps")
-	ylabel!("Rank")
+	ylabel!("Number of cycles")
 	plot!(legend=true, )
 
 	show_plt && display(plt_reference)
