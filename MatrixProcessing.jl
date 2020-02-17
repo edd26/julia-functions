@@ -121,8 +121,11 @@ julia> get_ordered_matrix(b; assing_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(input_matrix; assing_same_values=false,
-                                                        force_symmetry=false)
+function get_ordered_matrix(input_matrix;
+                                    assing_same_values=false,
+                                    force_symmetry=false,
+                                    thresholding=false,
+                                    default_zero=eps())
 
     mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
@@ -132,6 +135,11 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
     else
         symetry_order = false
         @warn "Doing non-symetric ordering"
+    end
+
+    if thresholding
+        to_be_zeroed = findall(x->x<default_zero, input_matrix)
+        input_matrix[to_be_zeroed] .= 0
     end
 
     # ====
@@ -197,6 +205,8 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
     end
     return ordered_matrix
 end
+
+
 
 function get_high_dim_ordered_matrix(input_matrix)
     matrix_size = size(input_matrix)
