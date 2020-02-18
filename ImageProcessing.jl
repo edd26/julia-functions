@@ -89,8 +89,9 @@ length(`centers`) x length(`centers`).
 
 Each of the subimage is center around values stored in  @centers
 """
-function get_local_img_correlations(img, centers, sub_img_size;
+function get_local_img_correlations(img, centers, sub_img_size::Int;
                                                     with_gradient=false)
+    @info "runnig 92 line"
     half_size = ceil(Int,(sub_img_size-1)/2)
     half_range = half_size#
     h, w = size(img)
@@ -131,7 +132,8 @@ Takes `img` and computes crosscorrelation with set of `masks` around the
 `centers`. Crosscorrelation is computed as convolution of the mask and the area
 around coordinates stored in `centres`.
 """
-function get_local_img_correlations(img, centers, masks; with_gradient=false)
+function get_local_img_correlations(img, centers, masks::Vector; with_gradient=false)
+    @info "runnig 136 line"
     masks_num = length(masks)
     sub_img_size = size(masks[1],1)
     half_size = ceil(Int,(sub_img_size-1)/2)
