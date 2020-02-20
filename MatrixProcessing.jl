@@ -123,9 +123,7 @@ julia> get_ordered_matrix(b; assing_same_values=true)
 """
 function get_ordered_matrix(input_matrix;
                                     assing_same_values=false,
-                                    force_symmetry=false,
-                                    thresholding=false,
-                                    default_zero=eps())
+                                    force_symmetry=false)
 
 # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
 #   to be further investigated
@@ -137,11 +135,6 @@ function get_ordered_matrix(input_matrix;
     else
         symetry_order = false
         @warn "Doing non-symetric ordering"
-    end
-
-    if thresholding
-        to_be_zeroed = findall(x->x<default_zero, input_matrix)
-        input_matrix[to_be_zeroed] .= 0
     end
 
     # ====
