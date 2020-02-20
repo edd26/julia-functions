@@ -729,18 +729,18 @@ function plot_and_save_bettis2(eirene_results, plot_title::String,
 end
 
 
-function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=0)#; plot_size = (width=1200, height=800),
+function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
     # set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
-    colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
+    colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors] #cur_colors[7],
 
     # final_title = "Eirene betti curves, "*plot_title
 	plot_ref = plot(title=plot_title);
-    max_dim = size(bettis)[1]
-    for p = (1+min_dim):(max_dim)
-        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1)
-													);
+    max_dim = size(bettis,1)
+    for p = (min_dim):(max_dim)
+        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p),
+													lc=colors_set[p]);
         if legend_on
             plot!(legend=true)
         else
