@@ -752,3 +752,13 @@ function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size
 	xlabel!("Edge density")
     return plot_ref
 end
+
+function get_and_plot_bettis(eirene_results;max_dim=3, min_dim=1, plot_title="",
+	 															legend_on=false)
+	bettis = get_bettis(eirene_results, max_dim);
+	norm_bettis = normalise_bettis(bettis);
+	plot_ref = plot_bettis2(norm_bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
+	display(plot_ref)
+
+	return plot_ref
+end
