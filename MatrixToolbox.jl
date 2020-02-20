@@ -2,7 +2,6 @@ using Distances
 using DataFrames
 using Random
 using LightGraphs
-using GraphPlot
 
 export generate_random_point_cloud,
         generate_geometric_matrix,
