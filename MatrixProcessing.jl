@@ -74,7 +74,9 @@ function symmetrize_image(image)
 end
 
 """
-    get_ordered_matrix(input_matrix; assing_same_values=false)
+    get_ordered_matrix(input_matrix; assing_same_values=false, force_symmetry=false,
+                            small_dist_grouping=false,
+                            min_dist=eps())
 
 Takes a @input_matrix and returns ordered form of this matrix.
 The ordered form is a matrix which elements represent ordering from smallest to
@@ -88,6 +90,9 @@ assigned with the same ordering number. This can be changed with
 @assing_same_values parameter.
 
 Symetry ordering can be froced with @force_symmetry parameter.
+
+By setting 'small_dist_grouping' to true, all the values that difference is
+lower than 'min_dist', will be assigned with the same order number.
 
 # Examples
 ```julia-repl
@@ -121,9 +126,10 @@ julia> get_ordered_matrix(b; assing_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(input_matrix;
-                                    assing_same_values=false,
-                                    force_symmetry=false)
+function get_ordered_matrix(input_matrix; assing_same_values=false,
+                                force_symmetry=false,
+                                small_dist_grouping=false,
+                                min_dist=1e-16)
 
 # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
 #   to be further investigated
@@ -173,7 +179,9 @@ function get_ordered_matrix(input_matrix;
         if assing_same_values && k!=1
             old_positoin = ordered_indices[k-1]
             old_matrix_index = matrix_indices[old_positoin]
-            if input_matrix[old_matrix_index] == input_matrix[matrix_index]
+            if input_matrix[old_matrix_index] == input_matrix[matrix_index] ||
+                (small_dist_grouping &&
+                (abs(input_matrix[old_matrix_index] - input_matrix[matrix_index]) > min_dist ))
                 ordered_matrix[matrix_index] = ordering_number-1
                 ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
             else
@@ -190,11 +198,13 @@ function get_ordered_matrix(input_matrix;
 
     # ====
     non_zero_input = findall(x->x!=0,input_matrix)
-    if !isempty(non_zero_input)
+    if isempty(ordered_matrix)
+        @warn "Ordered matrix is empty"
         min_orig = findmin(input_matrix[non_zero_input])[2]
         max_new = findall(x->x==1,ordered_matrix)[1]
         @debug "Original minimal value was at position: " non_zero_input[min_orig]
         @debug "After ordering the first index value is at position: " max_new
+    elseif !isempty(non_zero_input)
     else
         @warn "All values in input matrix were zeros!"
     end
