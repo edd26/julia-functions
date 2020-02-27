@@ -745,7 +745,8 @@ function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size
     for p = (min_dim):(max_dim)
 		@info p
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p),
-													lc=colors_set[p]);
+													lc=colors_set[p],
+													linewidth = 2,);
         if legend_on
             plot!(legend=true)
         else
