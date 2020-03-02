@@ -768,3 +768,30 @@ function get_and_plot_bettis(eirene_results;max_dim=3, min_dim=1, plot_title="",
 
 	return plot_ref
 end
+
+
+"""
+	lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
+
+Takes ordered matrix 'input_matrix' and reduces the resolution of values in the
+matrix into 'total_bins' bins.
+"""
+function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
+	new_ordered_matrix = copy(ordered_matrix)
+	max_val = findmax(ordered_matrix)[1]
+	min_val = findmin(ordered_matrix)[1]
+
+	bin_step = max_val ÷ total_bins
+	old_bins = min_val:bin_step:max_val
+
+	for bin = 1:total_bins
+		@debug "First step threshold is $(old_bins[bin])"
+		indices = findall(x->(x >= old_bins[bin]), ordered_matrix)
+		new_ordered_matrix[indices] .= bin-1
+	end
+
+	@debug "Max_val in new matrix is " findmax(new_ordered_matrix)
+	@debug "And should be " total_bins-1
+
+	return new_ordered_matrix
+end
