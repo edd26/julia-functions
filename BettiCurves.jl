@@ -777,7 +777,7 @@ Takes ordered matrix 'input_matrix' and reduces the resolution of values in the
 matrix into 'total_bins' bins.
 """
 function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
-	new_ordered_matrix = copy(ordered_matrix)
+	new_ordered_matrix = zeros(size(ordered_matrix))
 	max_val = findmax(ordered_matrix)[1]
 	min_val = findmin(ordered_matrix)[1]
 
@@ -794,4 +794,100 @@ function lower_ordmat_resolution(ordered_matrix::Array, total_bins::Int)
 	@debug "And should be " total_bins-1
 
 	return new_ordered_matrix
+end
+
+
+"""
+	average_bettis(bettis_matrix; up_factor=8)
+
+Takes the average values of betti curves stored in 'bettis_matrix'.
+
+'bettis_matrix' consist of different simulations(first index of the matrix),
+different ranks (third index of the matrix). Second index of the matrices
+(saples) may vary accross many simulations and for this reason, all betti curves
+are upsampled by a factor of 'upsample_factor' and then the average for every
+dimension is computed.
+"""
+function average_bettis(bettis_matrix; up_factor=8)
+
+	bettis_matrix_backup = copy(bettis_matrix)
+
+	simulations = size(bettis_matrix,1)
+	dimensions = size(bettis_matrix[1],1)
+
+	max_samples = 0
+	for k = 1:simulations
+		# global max_samples
+		current_len = length(bettis_matrix[k][1][:,1])
+		if max_samples < current_len
+			max_samples = current_len
+		end
+	end
+
+	bettis_size = size(bettis_matrix)
+
+
+	total_upsamples = (max_samples-1)*up_factor+1
+	x_resampled = range(0,1,step=total_upsamples)
+
+	avg_bettis = zeros(total_upsamples, dimensions)
+    std_bettis = copy(avg_bettis)
+	resampled_bettis = zeros(simulations, total_upsamples, dimensions)
+
+	# resample betti curves
+	for simulation=1:simulations, betti = 1:dimensions
+		resampled_bettis[simulation,:,betti] =
+				upsample_vector2(bettis_matrix[simulation][betti][:,2], total_upsamples)
+	end
+
+	# average and std Betti
+	for dimension = 1:dimensions
+		avg_bettis[:,dimension] = mean(resampled_bettis[:,:,dimension], dims=1)
+		std_bettis[:,dimension] = mean(resampled_bettis[:,:,dimension], dims=1)
+	end
+
+	return avg_bettis, std_bettis
+end
+
+function upsample_vector2(input_vector, total_upsamples)
+	total_orig_samples = size(input_vector,1)-1
+
+	x_vals = range(0, 1, length=total_orig_samples+1)
+	spl = Spline1D(x_vals, input_vector)
+
+	x_upsampled = range(0, 1, length=total_upsamples)
+	y_upsampled = spl(x_upsampled)
+
+	# ref = plot(range(0, 1, length=total_orig_samples), input_vector);
+	# plot!(x_vals, y_upsampled);
+	# display(ref)
+
+	return y_upsampled
+end
+
+
+using Dierckx
+"""
+	upsample_vector(input_vector; upsample_factor::Int=8)
+
+Takes an 'input_vector' and returns a vector which has 'upsample_factor' many
+times more samples. New samples are interpolated with 'spl' function from
+'Dierckx' package.
+
+"""
+function upsample_vector(input_vector; upsample_factor::Int=8)
+	total_orig_samples = size(input_vector,1)-1
+	total_samples = upsample_factor*total_orig_samples+1
+
+	x_vals = range(0, 1, length=total_orig_samples+1)
+	spl = Spline1D(x_vals, input_vector)
+
+	x_upsampled = range(0, 1, length=total_samples)
+	y_upsampled = spl(x_upsampled)
+
+	# ref = plot(range(0, 1, length=total_orig_samples), input_vector);
+	# plot!(x_vals, y_upsampled);
+	# display(ref)
+
+	return y_upsampled
 end
