@@ -243,7 +243,7 @@ end
 
 function generate_indices(matrix_size, symetry_order)
     # Get all cartesian indices from input matrix
-    matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
+    matrix_indices = CartesianIndices((1:matrix_size, 1:matrix_size))
     # Filter out indices below diagonal
     if symetry_order
         matrix_indices = findall(x->x[1]<x[2], matrix_indices)
