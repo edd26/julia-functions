@@ -148,7 +148,7 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
         @warn "Doing non-symetric ordering"
     end
 
-    distance_groups !=0 && group_distances!(input_matrix, distance_groups)
+    # distance_groups !=0 && group_distances!(input_matrix, distance_groups)
 
     # ====
     matrix_indices = generate_indices(mat_size, symetry_order)
