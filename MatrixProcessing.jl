@@ -73,6 +73,10 @@ function symmetrize_image(image)
   return img
 end
 
+
+# =====
+# matrix ordering
+
 """
     get_ordered_matrix(input_matrix; assing_same_values=false, force_symmetry=false,
                             small_dist_grouping=false,
@@ -129,10 +133,11 @@ julia> get_ordered_matrix(b; assing_same_values=true)
 function get_ordered_matrix(input_matrix; assing_same_values=false,
                                 force_symmetry=false,
                                 small_dist_grouping=false,
-                                min_dist=1e-16)
+                                min_dist=1e-16,
+                                distance_groups=0)
+    # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
+    #   to be further investigated
 
-# TODO Symmetry must be forced for matrix in which there are NaN elements- needs
-#   to be further investigated
     mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
 
@@ -143,15 +148,11 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
         @warn "Doing non-symetric ordering"
     end
 
+    distance_groups !=0 && group_distances!(input_matrix, distance_groups)
+
     # ====
-    # Get all cartesian indices from input matrix
-    matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
-    # Filter out indices below diagonal
-    if symetry_order
-        matrix_indices = findall(x->x[1]<x[2], matrix_indices)
-    else
-        matrix_indices = findall(x->true, matrix_indices)
-    end
+    matrix_indices = generate_indices(mat_size, symetry_order)
+
 
     # Get number of elements to be ordered
     if symetry_order
@@ -163,25 +164,28 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
     end
 
     # Get all values which will be sorted
-    sorted_values = input_matrix[matrix_indices]
+    matrix_values_for_sort = input_matrix[matrix_indices]
 
     # Sort indices by values (highest to lowest)
     # Create a list of indices, which corresponding valeus are ordered
-    ordered_indices = sort!([1:repetition_number;],
-                        by=i->(sorted_values[i],matrix_indices[i]))
+    sorted_indices = sort!([1:repetition_number;],
+                        by=i->(matrix_values_for_sort[i],matrix_indices[i]))
 
     ordering_number = 0
     for k=1:repetition_number
         # global ordering_number
-        next_position = ordered_indices[k]
+        next_position = sorted_indices[k]
         matrix_index = matrix_indices[next_position]
 
         if assing_same_values && k!=1
-            old_positoin = ordered_indices[k-1]
-            old_matrix_index = matrix_indices[old_positoin]
-            if input_matrix[old_matrix_index] == input_matrix[matrix_index] ||
-                (small_dist_grouping &&
-                (abs(input_matrix[old_matrix_index] - input_matrix[matrix_index]) > min_dist ))
+            prev_index = sorted_indices[k-1]
+            prev_matrix_index = matrix_indices[prev_index]
+
+            conditioin1 = input_matrix[prev_matrix_index] == input_matrix[matrix_index]
+            conditioin2 = small_dist_grouping
+            conditioin3 = abs(input_matrix[prev_matrix_index] - input_matrix[matrix_index]) > min_dist
+
+            if conditioin1 || (conditioin2 && conditioin3)
                 ordered_matrix[matrix_index] = ordering_number-1
                 ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number-1
             else
@@ -190,7 +194,7 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
                 ordering_number+=1
             end
         else
-            ordered_matrix[matrix_index] = ordering_number
+            ordered_matrix[matrix_index[1], matrix_index[2]] = ordering_number
             ordered_matrix[matrix_index[2], matrix_index[1]] = ordering_number
             ordering_number+=1
         end
@@ -211,6 +215,46 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
     return ordered_matrix
 end
 
+function group_distances!(input_matrix, distance_groups)
+    normalize_distances!(input_matrix) # Probably normalized_matrix would suffice
+
+    range_val = range(0, 1, length=distance_groups)
+
+    for k = 2:distance_groups
+        indices = findall(x->x>range_val[k-1] && x<range_val[k], input_matrix)
+        input_matrix[indices] .= range_val[k]
+    end
+
+    # Sets last range to values smaller than unity, just in case this might cause trobules
+    input_matrix[input_matrix .> range_val[end-1]] .= 0.99
+end
+
+function normalize_distances!(input_matrix)
+    max_val = findmax(input_matrix)[1]
+    min_val = findmin(input_matrix)[1]
+
+    if min_val < 0
+        input_matrix .+= abs(min_val)
+    else
+        input_matrix .-= abs(min_val)
+    end
+    input_matrix ./= abs(max_val)
+end
+
+function generate_indices(matrix_size, symetry_order)
+    # Get all cartesian indices from input matrix
+    matrix_indices = CartesianIndices((1:mat_size, 1:mat_size))
+    # Filter out indices below diagonal
+    if symetry_order
+        matrix_indices = findall(x->x[1]<x[2], matrix_indices)
+    else
+        matrix_indices = findall(x->true, matrix_indices)
+    end
+    return matrix_indices
+end
+
+# matrix ordering
+# =====
 
 
 function get_high_dim_ordered_matrix(input_matrix)
