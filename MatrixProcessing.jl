@@ -173,7 +173,7 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
 
     ordering_number = 0
     for k=1:repetition_number
-        # global ordering_number
+        global ordering_number
         next_position = sorted_indices[k]
         matrix_index = matrix_indices[next_position]
 
@@ -217,13 +217,15 @@ end
 
 function group_distances!(input_matrix, distance_groups)
     normalize_distances!(input_matrix) # Probably normalized_matrix would suffice
+    distance_bins = distance_groups+1
 
-    range_val = range(0, 1, length=distance_groups)
+    range_val = range(0, 1, length=distance_bins)
 
-    for k = 2:distance_groups
+    for k = 2:distance_bins
         indices = findall(x->x>range_val[k-1] && x<range_val[k], input_matrix)
         input_matrix[indices] .= range_val[k]
     end
+    unique(input_matrix)
 
     # Sets last range to values smaller than unity, just in case this might cause trobules
     input_matrix[input_matrix .> range_val[end-1]] .= 0.99
