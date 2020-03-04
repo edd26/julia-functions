@@ -427,11 +427,11 @@ function get_gabor_mask_set(;filt_size=25, σ=[2], theta_rad=[0], λ=[15], γ=[0
                                         gamma,
                                         ψ)
                         if re_part && !im_part
-                            @debug "Doing real part"
+                            # @debug "Doing real part"
                             if do_norm
                                 kernel[1] .+= abs(findmin(kernel[1])[1])
                                 kernel[1] ./= findmax(kernel[1])[1]
-                                @debug "Doing norm"
+                                # @debug "Doing norm"
                                 if do_negative
                                     kernel[1] .-= 0.5
                                 end
