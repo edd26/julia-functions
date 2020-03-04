@@ -173,7 +173,7 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
 
     ordering_number = 0
     for k=1:repetition_number
-        global ordering_number
+        # global ordering_number
         next_position = sorted_indices[k]
         matrix_index = matrix_indices[next_position]
 
