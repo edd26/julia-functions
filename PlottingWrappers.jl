@@ -15,8 +15,9 @@ function plot_square_heatmap(matrix, tick_step, tick_end;
                                 				top_margin= 0,
                                 				left_margin=[0 0],
                                 				bottom_margin= 0
-                                				),)
-    heat_map = heatmap(matrix,  color=:lightrainbow,
+                                				),
+                                color_palete=:lightrainbow)
+    heat_map = heatmap(matrix,  color=color_palete,
                     title=plt_title,
                     size=plot_params.size, dpi=plot_params.dpi,
                     ticks=0:tick_step:tick_end);
