@@ -732,19 +732,24 @@ end
 function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
 	max_dim = size(bettis,1)
+	all_dims = min_dim:max_dim
 
 	# set_default_plotting_params()
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
-    colors_set =  [cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+	if min_dim == 0
+		colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+	else
+    	colors_set =  [cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+	end
 	for c =  [collect(11:17);]
 		push!(colors_set, cur_colors[c])
 	end
 
     # final_title = "Eirene betti curves, "*plot_title
 	plot_ref = plot(title=plot_title);
-    for p = (min_dim):(max_dim)
-		@info p
-        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p),
+    for p = 1:(max_dim)
+		# @info p
+        plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_$(all_dims[p])",
 													lc=colors_set[p],
 													linewidth = 2,);
         if legend_on
