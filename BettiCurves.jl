@@ -4,25 +4,25 @@ using Measures
 using Plots.PlotMeasures
 include("MatrixProcessing.jl")
 
+#
+# # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
+# function setdefaultplottingparams(;upscale=2)
+#     #8x upscaling in resolution
+#     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
+#     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
+#     default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
+#     default(size=(800*upscale,600*upscale)) #Plot canvas size
+#     default(dpi=500) #Only for PyPlot - presently broken
+# end
 
-# Source: https://github.com/JuliaPlots/Plots.jl/issues/897
-function setdefaultplottingparams(;upscale=2)
-    #8x upscaling in resolution
-    fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
-    fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
-    default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
-    default(size=(800*upscale,600*upscale)) #Plot canvas size
-    default(dpi=500) #Only for PyPlot - presently broken
-end
-
-
+# ====
 """
 	get_bettis(results_eirene::Dict, max_dim::Integer; min_dim=1)
 
 Uses betticurve function to generate Betti curves up to `max_dim` diemsion from
 the `results_eirene` dictionary.
 """
-function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim=1)
+function get_bettis(results_eirene::Dict, max_dim::Int; min_dim=1)
     bettis = Matrix{Float64}[]
     for d =min_dim:max_dim
         result = betticurve(results_eirene, dim=d)
@@ -31,7 +31,7 @@ function get_bettis(results_eirene::Dict, max_dim::Integer; min_dim=1)
     return bettis
 end
 
-
+# ====
 """
 	normalise_bettis(bettis)
 
@@ -52,26 +52,64 @@ function normalise_bettis(bettis)
     return norm_bettis
 end
 
+# ====
 
+"""
+	vectorize_bettis(eirene_results, maxdim, mindim)
+
+Returns the betti curves in the form of matrix, which rows are Betti values, and
+columns are Betti dimensions starting with @mindim up to @maxdim.
+"""
+function vectorize_bettis(eirene_results, maxdim, mindim)
+	# TODO change description
+	number_of_steps = length(betticurve(eirene_results, dim=0)[:,1])
+	number_of_bettis = maxdim-mindim+1
+
+	result = zeros(number_of_steps, number_of_bettis)
+	try
+		iter=1
+		for d=mindim:maxdim
+			bett_res = betticurve(eirene_results, dim=d)[:,2]
+			if size(bett_res,1) == 0
+				@warn "Computed betti curve had 0 elements, creating vector with zeros"
+				bett_res = zeros(size(result,1))
+			end
+			result[:,iter] = bett_res
+			iter+=1
+		end
+		@debug size(result)
+		return result
+	catch err
+		if isa(err, DimensionMismatch)
+			@error "Dimension mismatch error"
+			for d=mindim:maxdim
+				@error size(betticurve(c, dim=d))
+			end
+			@error hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
+			throw(err)
+	   else
+			@error "Unknown error occurred"
+			throw(err)
+	   end
+	end
+end
+
+# ====
 """
 	plot_bettis(bettis, plot_title; legend_on=true)
 
 Creates a plot for set of betti numbers stored in `bettis` and return the
 handler to the plot.
 `plot_title` is used for the title of the plot.
+
+'kwargs' are plot parameters
 """
-function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, plot_params= (dpi=300,
-				size=(900,800),
-				lw=1,
-				thickness_scaling=1,
-				top_margin= `:match`,
-				left_margin= `:match`,
-				bottom_margin= `:match`
-				))
-                                        #                        base_dpi = 500)
-    # set_default_plotting_params()
+function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, kwargs...)
     cur_colors = get_color_palette(:auto, plot_color(:white), 17)
-    colors_set =  [cur_colors[7], cur_colors[5], [:red], cur_colors[1], cur_colors]
+    colors_set =  [cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+	for c =  [collect(11:17);]
+		push!(colors_set, cur_colors[c])
+	end
 
     # final_title = "Eirene betti curves, "*plot_title
 	plot_ref = plot(title=plot_title);
@@ -79,14 +117,7 @@ function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, plot_params=
     for p = (1+min_dim):(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
                                                     lc=colors_set[p],
-													dpi=plot_params.dpi,
-													size=plot_params.size,
-													lw=plot_params.lw,
-													thickness_scaling=plot_params.thickness_scaling,
-													top_margin=plot_params.top_margin,
-								                    left_margin=plot_params.left_margin,
-								                    bottom_margin=plot_params.bottom_margin
-													);
+													kwargs...);
         if legend_on
             plot!(legend=true)
         else
@@ -101,7 +132,7 @@ end
 
 
 """
-	pretty_plot_bettis(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+	plot_bettis_collection(bettis_collection, bett_num; step=1, show_plt=true, R=0., G=0.4, B=1.0)
 
 PLots collection of Betti curves of rank 'bett-num'. Every successive plot has
 lower opacity than predecessor.  'step' defines step between collection elements
@@ -110,7 +141,7 @@ disabled by setting 'show_plt' to false.
 
 Color of the plot can be set with 'R', 'G', 'B' parameters.
 """
-function pretty_plot_bettis(bettis_collection, bett_num, max_rank; step=1, show_plt=true, R=0., G=0.4, B=1.0)
+function plot_bettis_collection(bettis_collection, bett_num, max_rank; step=1, show_plt=true, R=0., G=0.4, B=1.0)
 	step>0 || error("Steps should be natural number!")
 	bettis_total = size(bettis_collection,1)
 	colors_set = zeros(Float64, bettis_total,4)
@@ -171,84 +202,32 @@ returns handler for figure. Optionally, if `do_save` is set, saves the figure
 or if `do_normalise` is set, sets the steps range to be normalised to the
 horizontal axis maximal value.
 """
-function plot_and_save_bettis(eirene_results, plot_title::String,
+function plot_and_save_bettis(bettis, plot_title::String,
 								results_path::String; file_name="",
-								extension = ".png", data_size::String="",
+								extension = ".png",
 								do_save=true,
-								extend_title=true, do_normalise=true, min_dim=0,
-								max_dim=3, legend_on=true, plot_params)
+								do_normalise=true, min_dim=0,
+								max_dim=3, legend_on=true, kwargs...)
 
     bettis = get_bettis(eirene_results, max_dim);
-    norm_bettis = normalise_bettis(bettis);
-    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim, plot_params=plot_params);
+	if do_normalise
+    	bettis = normalise_bettis(bettis);
+	end
+    plot_ref = plot_bettis(bettis, plot_title, legend_on=legend_on, min_dim=min_dim, kwargs...);
+
 
     if do_save
-		if extend_title && isempty(file_name)
-			file_name = "betti_c_"*plot_title*data_size*extension;
-		elseif isempty(file_name)
+		if isempty(file_name)
 			file_name = plot_title*extension
 		elseif isempty(findall(x->x==extension[2:end], split(file_name, ".")))
 			#check for the extension in file name
 			file_name *= extension
 		end
 
-        savefig(plot_ref, results_path*file_name)
-        @info "Saved file as " results_path*file_name
+        save_figure_with_params(plot_ref, results_path; extension=extension, prefix=split(file_name, ".")[1])
 
     end
     return plot_ref
-end
-
-
-"""
-	plot_decomposed_bettis(results_eirene, dataset_name)
-
-Plots betti curves 0 up to 3 at the same plot. Beside, betti curves 1 to 3 are
-plotted separately, in 3 additional plots at the same graph.
-"""
-function plot_decomposed_bettis(results_eirene, dataset_name)
-    max_dim = 3;
-    bettis = get_bettis(results_eirene, max_dim)
-
-    # p0 = plot(betti_0[:,1], betti_0[:,2], label="\\beta_0", linecolor=:blue); #, ylims = (0,maxy)
-    p1 = plot(bettis[1][:,1], bettis[1][:,2], label="\\beta_"*string(1),
-                                        linecolor=:orange, legend=:topleft);
-    p2 = plot(bettis[2][:,1], bettis[2][:,2], label="\\beta_"*string(1),
-                                        linecolor=:red, legend=:topleft);
-    p3 = plot(bettis[3][:,1], bettis[3][:,2], label="\\beta_"*string(1),
-                                        linecolor=:steelblue, legend=:topleft);
-
-    p0 = plot(bettis[1][:,1], bettis[1][:,2], label="\\beta_1", linecolor=:orange,
-        legend=:topleft, title="All Bettis for "*dataset_name*" data, Eirene");
-    plot!(bettis[2][:,1], bettis[2][:,2], label="\\beta_2", linecolor=:red);
-    plot!(bettis[3][:,1], bettis[3][:,2], label="\\beta_3", linecolor=:steelblue);
-    return plot_ref = plot(p0, p1, p2, p3, layout=4)
-end
-
-
-"""
-	plot_ebetti_curves_heatmap(C, C_ij)
-
-Plot betti curves obtained from Eirene and the correlation matrix.
-
-Note: Exported from TestingPairwiseCorrelationmatrix.jl
-"""
-function plot_ebetti_curves_heatmap(C, C_ij)
-    betti_0 = betticurve(C, dim=0)
-    betti_1 = betticurve(C, dim=1)
-    betti_2 = betticurve(C, dim=2)
-    betti_3 = betticurve(C, dim=3)
-
-    title = "Betti curves for pairwise corr. matrix"
-
-    p1 = plot(betti_0[:,1], betti_0[:,1], label="beta_0", title=title)
-    #, ylims = (0,maxy)
-    plot!(betti_1[:,1], betti_1[:,2], label="beta_1")
-    plot!(betti_2[:,1], betti_2[:,2], label="beta_2")
-    plot!(betti_3[:,1], betti_3[:,2], label="beta_3")
-
-    heat_map1 = heatmap(C_ij,  color=:lightrainbow,
-					title="Cij, $(choice), number of points: $points_per_dim");
 end
 
 
@@ -256,114 +235,115 @@ end
 # Original function returns 2 different types of betti curves. If no default
 # value parameters is given, it returns vector of matrices. If num of steps is
 # given, then it return matrix maxdim x numsteps.
+# """
+# bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
+#
+# Takes the `matr` and computes Betti curves up to `maxdim`. Return matrix only
+# with betti curve values
+#
+#
+# Function taken from: https://github.com/alexyarosh/hyperbolic
+# """
+# To be deleted
+# function bettis_eirene(matr, maxdim;
+# 							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
+#     c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
+#
+#     int_length = maxtime-mintime
+#     step_length= int_length/numofsteps
+#
+#     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
+# 		@debug "Inf mintime, maxtime or number of steps."
+#         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
+# 		result = vectorize_bettis(c, maxdim, mindim)
+#    end
+#
+#     betts = zeros(numofsteps, maxdim)
+#     # For every dimension compute betti curve
+#     for dim=1:maxdim
+#         bet = betticurve(c, dim=dim)
+#
+#         #for every element in betti curve return betti value if index is positive
+#         for i=1:size(bet,1)
+#             b = bet[i,:]
+#             ind = Int(ceil((b[1]-mintime)/step_length))
+#             if ind > 0
+#                 betts[ind,dim]=b[2]
+#             else
+#                 betts[1,dim]=b[2]
+#             end
+#         end
+#     end
+#     return betts
+# end
+
+
+# """
+# 	get_avg_bettis_from_JLD(data_sets; range=-1, maxsim=-1, steps=-1,
+# 													subset_size=-1, maxdim=3)
+#
+# Takes the 'data_sets' (vector of dictionaries from loading data with JLD) and
+# computes average betti curves with their std's.
+#
+# """
+# function get_avg_bettis_from_JLD(data_sets; range=-1,
+#                                 maxsim=-1, steps=-1, subset_size=-1, maxdim=3)
+# # TODO change name- it does not use JLD file
+#     avg_betti = Array[]
+#     std_betti = Array[]
+#
+#     if maxsim == -1
+#         maxsim=size(data_sets[1]["dist"], 1)
+#     end
+#
+#     if range == -1 || range > size(data_sets,1)
+#         range = 1:size(data_sets,1)
+#     else
+#         range = 1:range
+#     end
+#
+#     for k = range
+#         @debug "== Next k" k
+#         matrix_set = data_sets[k]["dist"]
+#         bettis_set = Array[]
+#         # steps = 2600;
+#
+#         new_bettis= []
+#         for m=1:maxsim
+#
+#             if subset_size == -1
+#                 subset_range=1:size(matrix_set[1],1)
+#             else
+#                 subset_range=1:subset_size
+#             end
+#
+#             @debug "=== Next m" m
+#             ordered_matrix = get_ordered_matrix(matrix_set[m][subset_range,subset_range];
+# 													assing_same_values=false)
+#             new_bettis = bettis_eirene(ordered_matrix, maxdim)
+#             push!(bettis_set, new_bettis)
+#         end
+#
+#         # Set size to be the same for every betti curve
+#         new_bettis_set = reduce_arrs_to_min_len(bettis_set)
+#
+#         # Compute average betti curve
+#         push!(avg_betti, average_bettis(new_bettis_set))
+#         push!(std_betti, std_bettis(new_bettis_set))
+#     end
+#
+#     return avg_betti, std_betti
+# end
+
+
 """
-bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
-
-Takes the `matr` and computes Betti curves up to `maxdim`. Return matrix only
-with betti curve values
-
-
-Function taken from: https://github.com/alexyarosh/hyperbolic
-"""
-function bettis_eirene(matr, maxdim;
-							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
-    c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
-
-    int_length = maxtime-mintime
-    step_length= int_length/numofsteps
-
-    if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
-		@debug "Inf mintime, maxtime or number of steps."
-        # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-		result = vectorize_bettis(c, maxdim, mindim)
-   end
-
-    betts = zeros(numofsteps, maxdim)
-    # For every dimension compute betti curve
-    for dim=1:maxdim
-        bet = betticurve(c, dim=dim)
-
-        #for every element in betti curve return betti value if index is positive
-        for i=1:size(bet,1)
-            b = bet[i,:]
-            ind = Int(ceil((b[1]-mintime)/step_length))
-            if ind > 0
-                betts[ind,dim]=b[2]
-            else
-                betts[1,dim]=b[2]
-            end
-        end
-    end
-    return betts
-end
-
-
-"""
-	get_avg_bettis_from_JLD(data_sets; range=-1, maxsim=-1, steps=-1,
-													subset_size=-1, maxdim=3)
-
-Takes the 'data_sets' (vector of dictionaries from loading data with JLD) and
-computes average betti curves with their std's.
-
-"""
-function get_avg_bettis_from_JLD(data_sets; range=-1,
-                                maxsim=-1, steps=-1, subset_size=-1, maxdim=3)
-# TODO change name- it does not use JLD file
-    avg_betti = Array[]
-    std_betti = Array[]
-
-    if maxsim == -1
-        maxsim=size(data_sets[1]["dist"], 1)
-    end
-
-    if range == -1 || range > size(data_sets,1)
-        range = 1:size(data_sets,1)
-    else
-        range = 1:range
-    end
-
-    for k = range
-        @debug "== Next k" k
-        matrix_set = data_sets[k]["dist"]
-        bettis_set = Array[]
-        # steps = 2600;
-
-        new_bettis= []
-        for m=1:maxsim
-
-            if subset_size == -1
-                subset_range=1:size(matrix_set[1],1)
-            else
-                subset_range=1:subset_size
-            end
-
-            @debug "=== Next m" m
-            ordered_matrix = get_ordered_matrix(matrix_set[m][subset_range,subset_range];
-													assing_same_values=false)
-            new_bettis = bettis_eirene(ordered_matrix, maxdim)
-            push!(bettis_set, new_bettis)
-        end
-
-        # Set size to be the same for every betti curve
-        new_bettis_set = reduce_arrs_to_min_len(bettis_set)
-
-        # Compute average betti curve
-        push!(avg_betti, average_bettis(new_bettis_set))
-        push!(std_betti, std_bettis(new_bettis_set))
-    end
-
-    return avg_betti, std_betti
-end
-
-
-"""
-	function get_curves_from_matrix(img_name)
+	function get_bettis_from_image(img_name)
 
 Computes Betti curves for the image file indicated by @img_name. If the image is
 	not symmetric, then it is the elements below diagonal are copied over the
 	elmenents above the diagonal.
 """
-function get_curves_from_matrix(img_name, plot_params; file_path="",
+function get_bettis_from_image(img_name, plot_params; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues = true)
   file_n = split(img_name, ".")[1]
@@ -598,48 +578,10 @@ function multiscale_matrix_testing(sample_space_dims = 3,
 end
 
 
-"""
-	vectorize_bettis(eirene_results, maxdim, mindim)
-
-Returns the betti curves in the form of matrix, which rows are Betti values, and
-columns are Betti dimensions starting with @mindim up to @maxdim.
-"""
-function vectorize_bettis(eirene_results, maxdim, mindim)
-	number_of_steps = length(betticurve(eirene_results, dim=0)[:,1])
-	number_of_bettis = maxdim-mindim+1
-
-	result = zeros(number_of_steps, number_of_bettis)
-	try
-		iter=1
-		for d=mindim:maxdim
-			bett_res = betticurve(eirene_results, dim=d)[:,2]
-			if size(bett_res,1) == 0
-				@warn "Computed betti curve had 0 elements, creating vector with zeros"
-				bett_res = zeros(size(result,1))
-			end
-			result[:,iter] = bett_res
-			iter+=1
-		end
-		@debug size(result)
-		return result
-	catch err
-		if isa(err, DimensionMismatch)
-			@error "Dimension mismatch error"
-			for d=mindim:maxdim
-				@error size(betticurve(c, dim=d))
-			end
-			@error hcat([betticurve(c, dim=d)[:,2] for d=mindim:maxdim]...)
-			throw(err)
-	   else
-			@error "Unknown error occurred"
-			throw(err)
-	   end
-	end
-end
 
 
  # ===============================================
-function get_curves_from_matrix2(img_name; file_path="",
+function get_bettis_from_image2(img_name; file_path="",
 									plot_heatmaps = true, save_heatmaps=false,
 								plot_betti_figrues = true)
   file_n = split(img_name, ".")[1]

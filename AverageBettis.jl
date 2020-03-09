@@ -6,18 +6,18 @@ using Plots, Eirene, Ripser, Statistics
 # if mintime, maxtime and numofsteps are specified -- returns a `numofsteps x maxdim` array
 # if either of the keyword arguments is not specified or is set to Inf, returns `maxdim` arrays for method=:eirene, or error for :ripser
 
-function bettis(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf, method=:ripser)
-    if (method == :ripser) || (method == :Ripser)
-        if VERSION < v"0.7.0"
-            error("Ripser requires at least Julia v 0.7.0")
-        end
-        return bettis_ripser(matr, maxdim, mintime=mintime, maxtime=maxtime, numofsteps=numofsteps)
-    elseif (method == :eirene) || (method == :Eirene)
-        return bettis_eirene(matr, maxdim, mintime=mintime, maxtime=maxtime, numofsteps=numofsteps)
-    else
-        error("Method $(method) is not supported. Supported methods are: method=:eirene, method=:ripser")
-    end
-end
+# function bettis(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf, method=:ripser)
+#     if (method == :ripser) || (method == :Ripser)
+#         if VERSION < v"0.7.0"
+#             error("Ripser requires at least Julia v 0.7.0")
+#         end
+#         return bettis_ripser(matr, maxdim, mintime=mintime, maxtime=maxtime, numofsteps=numofsteps)
+#     elseif (method == :eirene) || (method == :Eirene)
+#         return bettis_eirene(matr, maxdim, mintime=mintime, maxtime=maxtime, numofsteps=numofsteps)
+#     else
+#         error("Method $(method) is not supported. Supported methods are: method=:eirene, method=:ripser")
+#     end
+# end
 
 function bettis_ripser(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
     if (mintime == -Inf) || (maxtime == -Inf) || (numofsteps == -Inf)
@@ -43,39 +43,39 @@ function bettis_ripser(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
     end
     return betts
 end
-
-# Original function returns 2 different types of betti curves. If no default
-# value parameters is given, it returns vector of matrices. If num of steps is
-# given, then it return matrix maxdim x numsteps.
-function bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
-    c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
-
-    int_length = maxtime-mintime
-    step_length= int_length/numofsteps
-
-    if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
-        # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-        return hcat([betticurve(c, dim=d)[:,2] for d=1:maxdim]...)
-    end
-
-    betts = zeros(numofsteps, maxdim)
-    # For every dimension compute betti curve
-    for dim=1:maxdim
-        bet = betticurve(c, dim=dim)
-
-        #for every element in betti curve return betti value if index is positive
-        for i=1:size(bet,1)
-            b = bet[i,:]
-            ind = Int(ceil((b[1]-mintime)/step_length))
-            if ind > 0
-                betts[ind,dim]=b[2]
-            else
-                betts[1,dim]=b[2]
-            end
-        end
-    end
-    return betts
-end
+#
+# # Original function returns 2 different types of betti curves. If no default
+# # value parameters is given, it returns vector of matrices. If num of steps is
+# # given, then it return matrix maxdim x numsteps.
+# function bettis_eirene(matr, maxdim; mintime=-Inf, maxtime=Inf, numofsteps=Inf)
+#     c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
+#
+#     int_length = maxtime-mintime
+#     step_length= int_length/numofsteps
+#
+#     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
+#         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
+#         return hcat([betticurve(c, dim=d)[:,2] for d=1:maxdim]...)
+#     end
+#
+#     betts = zeros(numofsteps, maxdim)
+#     # For every dimension compute betti curve
+#     for dim=1:maxdim
+#         bet = betticurve(c, dim=dim)
+#
+#         #for every element in betti curve return betti value if index is positive
+#         for i=1:size(bet,1)
+#             b = bet[i,:]
+#             ind = Int(ceil((b[1]-mintime)/step_length))
+#             if ind > 0
+#                 betts[ind,dim]=b[2]
+#             else
+#                 betts[1,dim]=b[2]
+#             end
+#         end
+#     end
+#     return betts
+# end
 
 # average betti numbers over arrs
 # assuming arrs is an array of arrays, where each arrs[j] is the same size
