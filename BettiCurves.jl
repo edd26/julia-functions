@@ -105,9 +105,20 @@ handler to the plot.
 'kwargs' are plot parameters
 """
 function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, kwargs...)
-    cur_colors = get_color_palette(:auto, plot_color(:white), 17)
-    colors_set =  [cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
-	for c =  [collect(11:17);]
+	cgradients(:misc)
+    cur_colors = get_color_palette(:lightrainbow, plot_color(:white), 40)
+	cgradients(:colorcet)
+    cur_colors2 = get_color_palette(:cyclic1, plot_color(:white), 40)
+	if min_dim == 0
+		colors_set = [cur_colors[1]]
+	else
+		colors_set = typeof(cur_colors[1])[]
+	end
+	push!(colors_set, cur_colors[5])
+	push!(colors_set, cur_colors[2])
+	push!(colors_set, cur_colors2[5])
+    # colors_set =  [cur_colors[5], [:red], cur_colors[7]] #cur_colors[7],
+	for c =  [collect(7:17);]
 		push!(colors_set, cur_colors[c])
 	end
 
@@ -116,7 +127,7 @@ function plot_bettis(bettis, plot_title; legend_on=true, min_dim=0, kwargs...)
     max_dim = size(bettis)[1]
     for p = (1+min_dim):(max_dim)
         plot!(bettis[p][:,1], bettis[p][:,2], label="\\beta_"*string(p-1),
-                                                    lc=colors_set[p],
+                                                    lc=colors_set[p], lw = 2,
 													kwargs...);
         if legend_on
             plot!(legend=true)
