@@ -6,14 +6,14 @@ include("MatrixProcessing.jl")
 
 #
 # # Source: https://github.com/JuliaPlots/Plots.jl/issues/897
-# function setdefaultplottingparams(;upscale=2)
-#     #8x upscaling in resolution
-#     fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
-#     fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
-#     default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
-#     default(size=(800*upscale,600*upscale)) #Plot canvas size
-#     default(dpi=500) #Only for PyPlot - presently broken
-# end
+function setdefaultplottingparams(;upscale=2)
+    #8x upscaling in resolution
+    fntsm = Plots.font("sans-serif", pointsize=round(12.0*upscale))
+    fntlg = Plots.font("sans-serif", pointsize=round(18.0*upscale))
+    default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
+    default(size=(800*upscale,600*upscale)) #Plot canvas size
+    default(dpi=500) #Only for PyPlot - presently broken
+end
 
 # ====
 """
