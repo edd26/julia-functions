@@ -8,15 +8,7 @@ using DelimitedFiles
     using Images
     using JLD
 
-
-# cd("../matrix-tests/")
-    julia_func_path = "./julia-functions/"
-    # include(julia_func_path*"MatrixToolbox.jl")
-    # include(julia_func_path*"MatrixProcessing.jl")
-    # include(julia_func_path*"BettiCurves.jl")
-    # include(julia_func_path*"ImageProcessing.jl")
-    include(julia_func_path*"PlottingWrappers.jl")
-
+    include("PlottingWrappers.jl")
 	include("PointsSubstitution.jl")
 
 """
