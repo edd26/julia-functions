@@ -9,12 +9,11 @@
 using Eirene
 	using Random
 
-	cd("../matrix-tests/")
-	julia_func_path = "./julia-functions/"
-	include(julia_func_path*"MatrixProcessing.jl")
-	include(julia_func_path*"MatrixToolbox.jl")
-	include(julia_func_path*"BettiCurves.jl")
-	include(julia_func_path*"PlottingWrappers.jl")
+
+	include("MatrixProcessing.jl")
+	include("MatrixToolbox.jl")
+	include("BettiCurves.jl")
+	include("PlottingWrappers.jl")
 
 
 struct PlottingData
