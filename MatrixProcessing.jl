@@ -78,7 +78,7 @@ end
 # matrix ordering
 
 """
-    get_ordered_matrix(input_matrix; assing_same_values=false, force_symmetry=false,
+    get_ordered_matrix(input_matrix; assign_same_values=false, force_symmetry=false,
                             small_dist_grouping=false,
                             min_dist=eps())
 
@@ -91,7 +91,7 @@ Lower diagonal is symetrically copied from values above diagonal.
 
 By default, if there is a geoup of entriess with the same value, they all are
 assigned with the same ordering number. This can be changed with
-@assing_same_values parameter.
+@assign_same_values parameter.
 
 Symetry ordering can be froced with @force_symmetry parameter.
 
@@ -115,14 +115,14 @@ julia> b = [38 37 36 30;
             37 34 30 32;
             36 30 31 30;
             30 32 30 29]
-julia> get_ordered_matrix(b; assing_same_values=false)
+julia> get_ordered_matrix(b; assign_same_values=false)
 4×4 Array{Int64,2}:
 0  6  5  2
 6  0  1  4
 5  1  0  3
 2  4  3  0
 
-julia> get_ordered_matrix(b; assing_same_values=true)
+julia> get_ordered_matrix(b; assign_same_values=true)
 4×4 Array{Int64,2}:
 0  4  3  1
 4  0  1  2
@@ -130,7 +130,7 @@ julia> get_ordered_matrix(b; assing_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(input_matrix; assing_same_values=false,
+function get_ordered_matrix(input_matrix; assign_same_values=false,
                                 force_symmetry=false,
                                 small_dist_grouping=false,
                                 min_dist=1e-16,
@@ -177,7 +177,7 @@ function get_ordered_matrix(input_matrix; assing_same_values=false,
         next_position = sorted_indices[k]
         matrix_index = matrix_indices[next_position]
 
-        if assing_same_values && k!=1
+        if assign_same_values && k!=1
             prev_index = sorted_indices[k-1]
             prev_matrix_index = matrix_indices[prev_index]
 
