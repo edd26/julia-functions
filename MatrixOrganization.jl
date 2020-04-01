@@ -295,7 +295,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 		reorganized_plt_ref = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 									plt_title = "reordered_matrix, size:$(matrix_size)",
 									color_palete=:lightrainbow)
-		display(reorganized_plt_ref)
+		# display(reorganized_plt_ref)
 	else
 		reorganized_plt_ref=[]
 	end
