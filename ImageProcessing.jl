@@ -91,6 +91,7 @@ Each of the subimage is center around values stored in  @centers
 """
 function get_local_img_correlations(img, centers, sub_img_size::Int;
                                                     with_gradient=false)
+# TODO BUG- function is not workig for even numbers
     half_size = ceil(Int,(sub_img_size-1)/2)
     half_range = half_size#
     h, w = size(img)
