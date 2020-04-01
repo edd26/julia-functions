@@ -191,3 +191,105 @@ function fine_tune_matrix(input_matrix; do_plots=false)#, direction=:descending)
 	end
 	return fine_tune_matrix, fine_tuned_plt_ref
 end
+
+function order_max_vals_by_row_avg(input_matrix; do_plots=false)
+	# Find max values next to the diagonal
+	matrix_size = size(input_matrix,1)
+
+	# Row average
+	row_avg = reshape(mean(input_matrix, dims=1),(matrix_size, 1))
+
+	# Using funciton below, because sortperm is not working on Array{Float64,2}
+	sorted_rows_indexes = [findall(x->x==sort(row_avg, dims=1)[k], row_avg)[1][1] for k=1:matrix_size]
+	matrix_indices = collect(range(1,matrix_size))
+	# Sort indices by values (highest to lowest)
+	# Create a list of indices, which corresponding valeus are ordered
+	sorted_indices = sort!([1:matrix_size;],
+						by=i->(sorted_rows_indexes[i],matrix_indices[i]))
+
+	sorted_matrix = copy(input_matrix)
+	for k = 1:matrix_size÷2 #iteration_values
+		max_ind = sorted_indices[k]
+
+		sorted_indices[k] = k
+		sorted_indices[max_ind] = max_ind
+
+		swap_rows!(sorted_matrix, k, max_ind)
+		# swap_rows!(sorted_matrix, k-1, max_ind-1)
+	end
+	reorganized_plt_ref = plot_square_heatmap(sorted_matrix, 1,size(reordered_matrix,1);
+							plt_title = "reordered_matrix, size:$(matrix_size)",
+							color_palete=:lightrainbow)
+
+		input_mat_plt_ref = plot_square_heatmap(input_matrix, 1,size(reordered_matrix,1);
+									plt_title = "input_matrix, size:$(matrix_size)",
+									color_palete=:lightrainbow)
+
+		common_plot1 = plot(input_mat_plt_ref, reorganized_plt_ref, layout=(1,2),
+																size=(800,400))
+
+
+	# reordered_matrix = copy(input_matrix)
+	# row_indices = 1:2:matrix_size
+	# col_indices = 2:2:matrix_size
+	# coord_set = [CartesianIndex(row_indices[k], col_indices[k]) for k=1:matrix_size÷2]
+	#
+	#
+	# for k = iteration_values
+	# 	max_val, max_ind = findmax(diag_max_values)
+	# 	position = floor(k÷2)
+	# 	diag_max_values[max_ind] = diag_max_values[position]
+	# 	diag_max_values[position] = new_ord_value
+	# 	max_ind *= 2
+	#
+	# 	swap_rows!(reordered_matrix, k, max_ind)
+	# 	swap_rows!(reordered_matrix, k-1, max_ind-1)
+	# end
+
+
+	if do_plots
+		reorganized_plt_ref = plot_square_heatmap(sorted_matrix, 1,size(reordered_matrix,1);
+									plt_title = "reordered_matrix, size:$(matrix_size)",
+									color_palete=:lightrainbow)
+		display(reorganized_plt_ref)
+	end
+	return reordered_matrix, reorganized_plt_ref
+end
+
+
+function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all_plots = false, direction=:descending)
+	# Find max values next to the diagonal
+	matrix_size = size(input_matrix,1)
+	reordered_matrix = copy(input_matrix)
+
+	# for every row in matrix
+	for k = 1:2:matrix_size-1
+		global reordered_matrix
+		reorganized_plt_ref_pt0 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
+								plt_title = "reordered_matrix, size:$(matrix_size)",
+								color_palete=:lightrainbow)
+		max_val, max_ind = findmax(reordered_matrix[k:end, k:end])
+		# Take the smaller coordinate
+		# (max_ind[1] < max_ind[2]) ? (target_row = max_ind[1]) : (target_row = max_ind[2])
+		target_row = max_ind[1]+k-1
+
+		reordered_matrix = swap_rows(reordered_matrix, k, target_row)
+		reorganized_plt_ref_pt1 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
+									plt_title = "reordered_matrix, size:$(matrix_size)",
+									color_palete=:lightrainbow)
+	    val, second_target = findmax(reordered_matrix[k,k:end])
+		second_target = second_target+k-1
+		reordered_matrix = swap_rows(reordered_matrix, k+1, second_target)
+		# end
+		#
+		#
+		if do_all_plots
+			reorganized_plt_ref_pt2 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
+										plt_title = "reordered_matrix, size:$(matrix_size)",
+										color_palete=:lightrainbow)
+			reorganized_plt_ref = plot(reorganized_plt_ref_pt0, reorganized_plt_ref_pt1, reorganized_plt_ref_pt2, layout=(1,3), size=(1400,400))
+			display(reorganized_plt_ref)
+		end
+	end
+	return reordered_matrix, reorganized_plt_ref
+end
