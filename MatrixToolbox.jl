@@ -2,6 +2,7 @@ using Distances
 using DataFrames
 using Random
 using LightGraphs
+using DelimitedFiles
 
 export generate_random_point_cloud,
         generate_geometric_matrix,
@@ -168,4 +169,24 @@ function generate_matrix_ordering(geometric_matrix, ascending = true)
     end
 
     return matrix_ordering
+end
+
+"""
+    function get_geometric_matrix(points, dimensions; save_as_file=false)
+
+Created a point cloud with 'points' number of points from 'dimension'
+dimensional eucidean unit cube and computes distances between the points.
+
+Distance matrix may be saved to csv file by setting 'save_as_file' to 'true'.
+"""
+function get_geometric_matrix(points, dimensions; save_as_file=false)
+    point_cloud = generate_random_point_cloud(points,dimensions)
+    geom_mat = generate_geometric_matrix(point_cloud)
+
+    if save_as_file
+        open("geometric_matrix_points$(points)_dims$(dimensions).csv", "w") do io
+           writedlm(io, geom_mat, ',')
+       end
+   end
+   return geom_mat
 end
