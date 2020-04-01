@@ -264,7 +264,7 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 
 	# for every row in matrix
 	for k = 1:2:matrix_size-1
-		global reordered_matrix
+		# global reordered_matrix
 		reorganized_plt_ref_pt0 = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
 								plt_title = "reordered_matrix, size:$(matrix_size)",
 								color_palete=:lightrainbow)
@@ -290,6 +290,14 @@ function order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all
 			reorganized_plt_ref = plot(reorganized_plt_ref_pt0, reorganized_plt_ref_pt1, reorganized_plt_ref_pt2, layout=(1,3), size=(1400,400))
 			display(reorganized_plt_ref)
 		end
+	end
+	if do_final_plot
+		reorganized_plt_ref = plot_square_heatmap(reordered_matrix, 1,size(reordered_matrix,1);
+									plt_title = "reordered_matrix, size:$(matrix_size)",
+									color_palete=:lightrainbow)
+		display(reorganized_plt_ref)
+	else
+		reorganized_plt_ref=[]
 	end
 	return reordered_matrix, reorganized_plt_ref
 end
