@@ -384,9 +384,9 @@ using Test
 	in_matrix2 = [1 2 3; 5 6 7; 8 9 0]
 
 	@test matrix_poling(in_vector) !== in_vector
-	@test sum(matrix_poling(in_vector) .== [4 4 4 4 4 4 4]) == 7
+	@test matrix_poling(in_vector) == [4 4 4 4 4 4 4]
 	@test matrix_poling!(in_vector) === in_vector
-	@test sum(matrix_poling!(in_vector) .== [4 4 4 4 4 4 4]) == 7
+	@test matrix_poling!(in_vector) == [4 4 4 4 4 4 4]
 
 	@test matrix_poling(in_matrix) !== in_matrix
 	@test matrix_poling(in_matrix) == 9 .* ones(size(in_matrix))
@@ -394,7 +394,7 @@ using Test
 	@test matrix_poling!(in_matrix) == 9 .* ones(size(in_matrix))
 
 	@test matrix_poling(in_matrix2[1:2,1:2]) == 6 .* ones(size(in_matrix2[1:2,1:2]))
-	@test sum(matrix_poling(in_matrix2[1:2,1:2]) != in_matrix2[1:2,1:2])
+	@test matrix_poling(in_matrix2[1:2,1:2]) != in_matrix2[1:2,1:2]
 
 	# ====
 	# Subsampling matrix
