@@ -16,12 +16,18 @@ function plot_square_heatmap(matrix, tick_step, tick_end;
                                 				left_margin=[0 0],
                                 				bottom_margin= 0
                                 				),
-                                color_palete=:lightrainbow)
+                                color_palete=:lightrainbow,
+                                add_labels=true)
     heat_map = heatmap(matrix,  color=color_palete,
                     title=plt_title,
                     size=plot_params.size, dpi=plot_params.dpi,
                     ticks=0:tick_step:tick_end);
     yflip_matrix && plot!( yflip = true,);
+
+    if add_labels
+        xlabel!("Matrix index")
+        ylabel!("Matrix index")
+    end
 
     return heat_map
 end
