@@ -330,10 +330,6 @@ function matrix_poling(input_matrix::Array; method = "max_pooling")
 end
 
 
-subsamp_size=2
-square_matrix = copy(sqr_matrix0)
-[r_beg:r_end,c_beg:c_end])
-
 function subsample_matrix(square_matrix::Array; subsamp_size::Int=2, method="max_pooling")
 	if !issymmetric(square_matrix)
 		error("Input matrix is not square")
