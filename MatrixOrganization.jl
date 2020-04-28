@@ -352,6 +352,7 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 	# Subsample upper half
 	square_matrix2 = copy(square_matrix)
 	total_rows, total_cols = size(square_matrix)
+	size_mismatch_flag = false
 
 	if total_rows%2 != 0
 		total_rows -= 1
@@ -368,8 +369,13 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 			c_beg = col
 			c_end = col+subsamp_size-1
 
+			if r_end > total_rows || c_end > total_cols
+				size_mismatch_flag = true
+				break
+			end
 			square_matrix2[r_beg:r_end,c_beg:c_end] = matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end])
 		end
+		size_mismatch_flag && break
 	end
 
 	# Copy over lower half
