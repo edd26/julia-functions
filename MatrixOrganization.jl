@@ -320,11 +320,16 @@ Possible methods are:
 # 	return input_matrix
 # end
 
+input_matrix = [1 2 3; 4 5 6; 7 8 9]
+
 function matrix_poling(input_matrix::Array; method = "max_pooling")
 	out_matrix = copy(input_matrix)
 	if method == "max_pooling"
 		max_val = findmax(out_matrix)[1]
 		out_matrix .= max_val
+	elseif if method == "avg_pooling"
+		avg_val = mean(out_matrix)
+		out_matrix .= avg_val
 	end
 	return out_matrix
 end
@@ -373,7 +378,7 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 				size_mismatch_flag = true
 				break
 			end
-			square_matrix2[r_beg:r_end,c_beg:c_end] = matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end])
+			square_matrix2[r_beg:r_end,c_beg:c_end] = matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end]; method)
 		end
 		size_mismatch_flag && break
 	end
