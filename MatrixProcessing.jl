@@ -137,6 +137,7 @@ function get_ordered_matrix(input_matrix; assign_same_values=false,
                                 distance_groups=0)
     # TODO Symmetry must be forced for matrix in which there are NaN elements- needs
     #   to be further investigated
+    # TODO not working for negative only values
 
     mat_size = size(input_matrix,1)
     ordered_matrix = zeros(Int, mat_size, mat_size)
