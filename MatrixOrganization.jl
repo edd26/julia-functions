@@ -398,43 +398,57 @@ function pool_matrix(square_matrix::Array; method="max_pooling")
 end
 
 """
-    add_random_patch(input_matrix; patch_size=1)
+    add_random_patch(input_matrix; patch_size=1, total_patches=1, locations)
 
-Takes a matrix and replaces some values with random numbers. Values can be
+Takes a matrix and replaces some values with random values. Values can be
 replaced by setting 'patch_size' to values bigger than 1. If the input matrix
 is symmetric, then output matrix will be symmetric as well (values from above
 diagnoal will be copied over values from below diagonal).
 """
-function add_random_patch(input_matrix::Matrix ; patch_size=1, total_patches=1)
+function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, locations=CartesianIndex(0))
 	total_rows, total_cols = size(input_matrix)
-	if patch_size>total_rows || patch_size>total_cols
-		error(DimensionMismatch,": Patch size is bigger than the matrix!")
-	end
-
-    issymmetric(input_matrix) ? (symmetrize_matrix = true) : (symmetrize_matrix = false)
+	max_row = total_rows-patch_size+1
+	max_col = total_cols-patch_size+1
 
 	output_matrix = copy(input_matrix)
 	max_val = findmax(output_matrix)[1]
 	min_val = findmin(output_matrix)[1]
 	matrix_type = typeof(output_matrix[1])
 
-	if symmetrize_matrix
-		possible_indices = findall(x->true,UpperTriangular(output_matrix))
-		max_row = total_rows-patch_size+1
-		max_col = total_cols-patch_size+1
-		possible_indices = possible_indices[findall(x->x[1]<=x[2], possible_indices)]
-		possible_indices = possible_indices[findall(x->x[1]<=max_row, possible_indices)]
-		possible_indices = possible_indices[findall(x->x[2]<=max_col, possible_indices)]
-	else
-		possible_indices = possible_indices = findall(x->true,output_matrix)
+	if patch_size>total_rows || patch_size>total_cols
+		error(DimensionMismatch,": Patch size is bigger than the matrix!")
 	end
 
-	randomized_indices = possible_indices[randcycle(length(possible_indices))]
+	# ===
+    issymmetric(input_matrix) ? (symmetrize_matrix = true) : (symmetrize_matrix = false)
+
+	if locations == CartesianIndex(0)
+		@debug "Locations were not specified- random locations will be used"
+		if symmetrize_matrix
+			possible_indices = findall(x->true,UpperTriangular(output_matrix))
+			possible_indices = possible_indices[findall(x->x[1]<=x[2], possible_indices)]
+			possible_indices = possible_indices[findall(x->x[1]<=max_row, possible_indices)]
+			possible_indices = possible_indices[findall(x->x[2]<=max_col, possible_indices)]
+		else
+			possible_indices = possible_indices = findall(x->true,output_matrix)
+		end
+
+		tartget_indices = possible_indices[randcycle(length(possible_indices))]
+
+	else
+		wrong_indices = findall(x->x[1]>max_row || x[2]>max_col, locations1)
+		if isempty(wrong_indices)
+			tartget_indices = locations
+			total_patches = size(locations1)[1]
+		else
+			error(DimensionMismatch,": Given indices are bigger than the matrix dimensions!")
+		end
+	end
 
 	changed_indices = CartesianIndex[]
 	for replacement=1:total_patches
-		row = randomized_indices[replacement][1]
-		col = randomized_indices[replacement][2]
+		row = tartget_indices[replacement][1]
+		col = tartget_indices[replacement][2]
 		r_range = row:row+patch_size-1
 		c_range = col:col+patch_size-1
 
