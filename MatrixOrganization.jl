@@ -7,6 +7,7 @@ using DelimitedFiles
     using Distances
     using Images
     using JLD
+	using Random
 
     include("PlottingWrappers.jl")
 	include("PointsSubstitution.jl")
@@ -320,16 +321,14 @@ Possible methods are:
 # 	return input_matrix
 # end
 
-input_matrix = [1 2 3; 4 5 6; 7 8 9]
-
 function matrix_poling(input_matrix::Array; method = "max_pooling")
 	out_matrix = copy(input_matrix)
 	if method == "max_pooling"
 		max_val = findmax(out_matrix)[1]
 		out_matrix .= max_val
-	elseif if method == "avg_pooling"
+	elseif method == "avg_pooling"
 		avg_val = mean(out_matrix)
-		out_matrix .= avg_val
+		out_matrix .= floor(Int,avg_val)
 	end
 	return out_matrix
 end
@@ -355,7 +354,7 @@ end
 
 function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="max_pooling")
 	# Subsample upper half
-	square_matrix2 = copy(square_matrix)
+	square_matrix2 = Float64.(copy(square_matrix))
 	total_rows, total_cols = size(square_matrix)
 	size_mismatch_flag = false
 
@@ -378,7 +377,7 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 				size_mismatch_flag = true
 				break
 			end
-			square_matrix2[r_beg:r_end,c_beg:c_end] = matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end]; method)
+			square_matrix2[r_beg:r_end,c_beg:c_end] = matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end]; method=method)
 		end
 		size_mismatch_flag && break
 	end
@@ -396,4 +395,68 @@ function pool_matrix(square_matrix::Array; method="max_pooling")
 	out_matrix = copy(square_matrix)
 	pool_matrix!(square_matrix; method=method)
 	return out_matrix
+end
+
+"""
+    add_random_patch(input_matrix; patch_size=1)
+
+Takes a matrix and replaces some values with random numbers. Values can be
+replaced by setting 'patch_size' to values bigger than 1. If the input matrix
+is symmetric, then output matrix will be symmetric as well (values from above
+diagnoal will be copied over values from below diagonal).
+"""
+function add_random_patch(input_matrix::Matrix ; patch_size=1, total_patches=1)
+	total_rows, total_cols = size(input_matrix)
+	if patch_size>total_rows || patch_size>total_cols
+		error(DimensionMismatch,": Patch size is bigger than the matrix!")
+	end
+
+    issymmetric(input_matrix) ? (symmetrize_matrix = true) : (symmetrize_matrix = false)
+
+	output_matrix = copy(input_matrix)
+	max_val = findmax(output_matrix)[1]
+	min_val = findmin(output_matrix)[1]
+	matrix_type = typeof(output_matrix[1])
+
+	if symmetrize_matrix
+		possible_indices = findall(x->true,UpperTriangular(output_matrix))
+		max_row = total_rows-patch_size+1
+		max_col = total_cols-patch_size+1
+		possible_indices = possible_indices[findall(x->x[1]<=x[2], possible_indices)]
+		possible_indices = possible_indices[findall(x->x[1]<=max_row, possible_indices)]
+		possible_indices = possible_indices[findall(x->x[2]<=max_col, possible_indices)]
+	else
+		possible_indices = possible_indices = findall(x->true,output_matrix)
+	end
+
+	randomized_indices = possible_indices[randcycle(length(possible_indices))]
+
+	changed_indices = CartesianIndex[]
+	for replacement=1:total_patches
+		row = randomized_indices[replacement][1]
+		col = randomized_indices[replacement][2]
+		r_range = row:row+patch_size-1
+		c_range = col:col+patch_size-1
+
+		for ind in CartesianIndices((r_range,c_range))
+			push!(changed_indices,ind)
+		end
+
+		new_rand_matrix = rand(matrix_type, patch_size,patch_size)
+		output_matrix[r_range,c_range] .= new_rand_matrix
+	end
+
+	if symmetrize_matrix
+		# Inverse second column
+		changed_indices2 = [changed_indices changed_indices]
+		for ind = 1:size(changed_indices)[1]
+			c_ind = changed_indices2[ind,2]
+			changed_indices2[ind,2] = CartesianIndex(c_ind[2],c_ind[1])
+		end
+
+		@debug "Returned symmetric matrix" Symmetric(output_matrix)
+		return Symmetric(output_matrix), changed_indices2
+	else
+		return output_matrix, changed_indices
+	end
 end
