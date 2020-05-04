@@ -71,3 +71,70 @@ function plotimg(matrix_to_plot, cut_off=false)
 
     return colorview(Gray, matrix_to_plot)
 end
+
+
+
+"""
+   plot_image_analysis(plots_set; description::NamedTuple, original_img, kwargs...)
+
+Takes set of plots and puts them in 2 coulm layout. If 'description' is given,
+adds entry with the data processing description. If 'original_img' is given, it
+is also displayed next to the descrtions field.
+
+'kwargs' are plot properties.
+"""
+function plot_image_analysis(plots_set; description::NamedTuple, original_img, kwargs...)
+    kwarg_keys = kwargs.keys()
+
+    (!isempty(original)) ? (orig_img_flag = true) : (orig_img_flag = false)
+    (!isempty(description)) ? (desc_flag = true) : (desc_flag = false)
+
+    l = @layout [a{0.2w} [grid(3,3) b{0.2h}]]
+
+    total_plot_sets = 7
+    total_cols = 2
+    total_rows = ceil(Int,total_plot_sets/total_cols)
+    if orig_img_flag || desc_flag
+        total_rows +=1
+    end
+
+    height_unit = 1/total_rows
+
+    matrix =   [1 2 3;
+                4 5 6;
+                7 8 9]
+
+    l = @layout [a{0.4w,} b{0.4w,};
+                    # grid(1,4);
+                    # grid(1,4);
+                    # grid(1,4);
+                    # grid(1,4);
+                    ]
+                    # [grid(2,2)  grid(2,2)]]
+                    # [a [grid(4,2) b]]]
+    data = [rand(10, 4), rand(11, 4)]
+
+    l = @layout [a{0.4w} b
+                c d e f
+                c d e f
+                c d e f
+                c d e f
+                c d e f]
+     ref = plot(grid=false,
+            axis=false,
+            layout = l,
+            legend = false,
+            # seriestype = [:scatter :path],
+            dpi=300,
+            size=(900,1200),
+            )
+
+    ref.series_list
+
+    p2 = plot!(ref.subplots[18],rand(10, 1),seriestype = :scatter,axis=true,grid=true, title="")
+    p2 = plot!(ref.subplots[21],rand(10, 10),seriestype = :heatmap, legend=true, xlabel="index", ylabel="index")
+    annotate!(ref.subplots[0], 0, 0, "my text", :red)
+    p1.subplots
+    # color scheme
+
+end
