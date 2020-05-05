@@ -6,6 +6,7 @@ using DelimitedFiles
     using Images
     using Distances
     using Images
+		using ImageFiltering
     using JLD
 	using Random
 
@@ -329,6 +330,18 @@ function matrix_poling(input_matrix::Array; method = "max_pooling")
 	elseif method == "avg_pooling"
 		avg_val = mean(out_matrix)
 		out_matrix .= floor(Int,avg_val)
+	elseif method == "gauss_pooling"
+		# out_matrix = [0 0 0; 0 1 0; 0 0 0 ]
+		# out_matrix = ones(9,9)
+		# out_matrix[5,5] = 2
+		# out_matrix[5,7] = 2
+		# used_kernel = Kernel.gaussian(0.3)
+		#
+		# used_kernel.offsets
+		# ImageFiltering.OffsetArray(used_kernel.parent[2:end-1,2:end-1],)
+
+		imfilter!(out_matrix, Kernel.gaussian(0.3))
+		out_matrix .= floor(Int,avg_val)
 	end
 	return out_matrix
 end
@@ -420,7 +433,7 @@ function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, l
 	end
 
 	# ===
-    issymmetric(input_matrix) ? (symmetrize_matrix = true) : (symmetrize_matrix = false)
+	issymmetric(input_matrix) ? (symmetrize_matrix = true) : (symmetrize_matrix = false)
 
 	if locations == CartesianIndex(0)
 		@debug "Locations were not specified- random locations will be used"
@@ -436,10 +449,10 @@ function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, l
 		tartget_indices = possible_indices[randcycle(length(possible_indices))]
 
 	else
-		wrong_indices = findall(x->x[1]>max_row || x[2]>max_col, locations1)
+		wrong_indices = findall(x->x[1]>max_row || x[2]>max_col, locations)
 		if isempty(wrong_indices)
 			tartget_indices = locations
-			total_patches = size(locations1)[1]
+			total_patches = size(locations)[1]
 		else
 			error(DimensionMismatch,": Given indices are bigger than the matrix dimensions!")
 		end
@@ -456,7 +469,8 @@ function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, l
 			push!(changed_indices,ind)
 		end
 
-		new_rand_matrix = rand(matrix_type, patch_size,patch_size)
+		new_rand_matrix = floor.(matrix_type, rand(patch_size,patch_size) .* (max_val-min_val+1) .+ min_val)
+
 		output_matrix[r_range,c_range] .= new_rand_matrix
 	end
 
@@ -468,8 +482,15 @@ function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, l
 			changed_indices2[ind,2] = CartesianIndex(c_ind[2],c_ind[1])
 		end
 
-		@debug "Returned symmetric matrix" Symmetric(output_matrix)
-		return Symmetric(output_matrix), changed_indices2
+		# Copy over lower half
+		for row in 2:total_rows
+			for col in 1:row-1
+				output_matrix[row,col] = output_matrix[col,row]
+			end
+		end
+
+		@debug "Returned symmetric matrix" output_matrix
+		return output_matrix, changed_indices2
 	else
 		return output_matrix, changed_indices
 	end
