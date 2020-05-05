@@ -1,4 +1,6 @@
 using Plots
+include("TopologyStructures.jl")
+
 """
     plot_square_heatmap(matrix, tick_step, tick_end;
                                 plt_title, img_size=(900, 800), img_dpi=300)
@@ -137,4 +139,61 @@ function plot_image_analysis(plots_set; description::NamedTuple, original_img, k
     p1.subplots
     # color scheme
 
+end
+
+
+"""
+   get_all_plots_from_set(orig_matrix::TopologyMatrixSet, img1_gray::Array; name_prefix="")
+
+Takes a collection of matrix computed for topological analysis and creates set
+	of their heatmaps and related Betti curves.
+
+
+"""
+function get_all_plots_from_set(orig_matrix::TopologyMatrixSet, img1_gray::Array; name_prefix="")
+	# ===
+	# Get heatmaps
+	original_heatmaps_set 	= TopologyMatrixHeatmapsSet(orig_matrix)
+	# patched_heatmaps_set 	= TopologyMatrixHeatmapsSet(patched_matrix)
+
+	# ===
+	# Get Betti plots
+	original_bettis = TopologyMatrixBettisSet(orig_matrix)
+	original_bettis_plots 	= TopologyMatrixBettisPlots(original_bettis)
+	# patched_bettis_plots 	= TopologyMatrixBettisPlots(patched_bettis)
+
+	mat_size = size(orig_matrix.ordered_matrix,1)
+	common_plots_set = Any[]
+	for k = 1:size(orig_matrix.description_vector,1)
+		matrix_type = orig_matrix.description_vector[k]
+
+
+		# ===
+		# Common plot
+		common_plot1 = plot(original_heatmaps_set.heatmap_plots_set[k],
+								original_bettis_plots.betti_plots_set[k],
+							 layout=(1,2), size=(800,400))
+		plot!(common_plot1, title = matrix_type*"_r$(orig_matrix.ranks_collection[k])")
+		# met_par.do_dsiplay && display(common_plot1)
+
+		push!(common_plots_set, common_plot1)
+	end
+
+	image_plot = plot(img1_gray, legend = false);
+
+	parameters_list_plot = plot()
+	first_plot = plot(image_plot, parameters_list_plot)
+
+	plt_size = size(common_plots_set,1)
+
+	all_plot1 = plot(image_plot,
+					common_plots_set[1],		# original matrix
+ 					common_plots_set[2],	# original reordered- highest values located next to diagonal
+					common_plots_set[3],	# max pooling of values in subsquares, original matrirx
+					common_plots_set[4],	# max pooling of values in subsquares, reorganized matrix
+					common_plots_set[5],	# renumbered max pooling of values in subsquares, reorganized matrix
+					common_plots_set[6],	# renumbered max pooling of original matrix
+					common_plots_set[7],	# reordered renumbered max pooling of original matrix
+				   layout=(plt_size÷2+1,2), size=(1200*2,plt_size÷2*400))
+   return all_plot1
 end
