@@ -334,13 +334,13 @@ function matrix_poling(input_matrix::Array; method = "max_pooling")
 		# out_matrix = [0 0 0; 0 1 0; 0 0 0 ]
 		# out_matrix = ones(9,9)
 		# out_matrix[5,5] = 2
-		# out_matrix[5,7] = 2
-		# used_kernel = Kernel.gaussian(0.3)
+		# # out_matrix[5,7] = 2
+		used_kernel = Kernel.gaussian(0.4)
+		# used_kernel.parent[2:end-1,2:end-1]
 		#
-		# used_kernel.offsets
 		# ImageFiltering.OffsetArray(used_kernel.parent[2:end-1,2:end-1],)
 
-		imfilter!(out_matrix, Kernel.gaussian(0.3))
+		imfilter(out_matrix, used_kernel)
 		out_matrix .= floor(Int,avg_val)
 	end
 	return out_matrix
@@ -495,3 +495,32 @@ function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, l
 		return output_matrix, changed_indices
 	end
 end
+
+function scramble_matrix(in_matrix::Array; k::Int=2)
+	out_matrix = copy(in_matrix)
+	total_rows, total_cols = size(in_matrix)
+
+	for row = 1:k:total_rows-k
+		@info "row:" row
+		for col=row+2:k:total_cols-k
+			@info "col:" col
+			indices = collect(CartesianIndices((row:row+k-1,col:col+k-1)))
+			permut_indices = shuffle(indices)
+			out_matrix[indices] .= in_matrix[permut_indices]
+		end
+	end
+	return out_matrix
+end
+
+
+in_matrix = [   1 2 3;
+				5 6 7; 8 9 0]
+scramble_matrix(in_matrix)
+
+sqr_matrix1 = [	0	1	13	4	5	9;
+				1	0	2	14	6	10;
+				13	2	0	3	7	11;
+				4	14	3	0	8	12;
+				5	6	7	8	0	15;
+				9	10	11	12	15	0]
+scramble_matrix(sqr_matrix1)
