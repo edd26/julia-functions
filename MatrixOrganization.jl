@@ -322,7 +322,8 @@ Possible methods are:
 # 	return input_matrix
 # end
 
-function matrix_poling(input_matrix::Array; method = "max_pooling")
+# matrix_poling(mat[1:3,1:3]; method = "gauss_pooling")
+function matrix_poling(input_matrix::Array; method = "avg_pooling", kernel_size=3,gauss_sigma=1)
 	out_matrix = copy(input_matrix)
 	if method == "max_pooling"
 		max_val = findmax(out_matrix)[1]
@@ -331,17 +332,17 @@ function matrix_poling(input_matrix::Array; method = "max_pooling")
 		avg_val = mean(out_matrix)
 		out_matrix .= floor(Int,avg_val)
 	elseif method == "gauss_pooling"
-		# out_matrix = [0 0 0; 0 1 0; 0 0 0 ]
-		# out_matrix = ones(9,9)
-		# out_matrix[5,5] = 2
-		# # out_matrix[5,7] = 2
-		used_kernel = Kernel.gaussian(0.4)
-		# used_kernel.parent[2:end-1,2:end-1]
-		#
-		# ImageFiltering.OffsetArray(used_kernel.parent[2:end-1,2:end-1],)
+		@debug "Gauss pooling"
 
-		imfilter(out_matrix, used_kernel)
-		out_matrix .= floor(Int,avg_val)
+		# gauss_kernel = ones(kernel_size,kernel_size)
+		# gauss_kernel[kernel_size÷2+1,kernel_size÷2+1] = 2
+		filtering_kernel = Kernel.gaussian(gauss_sigma)
+		# gauss_kernel2 = imfilter(gauss_kernel, filtering_kernel)
+		# gauss_kernel3 = gauss_kernel2.-findmin(gauss_kernel2)[1]/findmax(gauss_kernel2)[1]
+		# gauss_kernel3 = gauss_kernel3./sum(gauss_kernel3)
+		out_matrix = imfilter(out_matrix, filtering_kernel)
+		# out_matrix += out_matrix.*gauss_kernel3
+		out_matrix .= floor.(Int,out_matrix)
 	end
 	return out_matrix
 end
@@ -365,7 +366,17 @@ function subsample_matrix(square_matrix::Array; subsamp_size::Int=2, method="max
 	end
 end
 
-function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="max_pooling")
+arr = reorganize_matrix(ordered_matrix; subsamp_size=3, method="gauss_pooling", overlap=2, gauss_sigma=4)
+	plot_square_heatmap(arr,5, 64; plt_title="",)
+
+square_matrix = ordered_matrix
+	subsamp_size=2
+	method="avg_pooling"
+	overlap=0
+function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="max_pooling", overlap::Int=0,gauss_sigma=1)
+	if method == "gauss_pooling"
+		(subsamp_size >= 3) || error("Can not do gaussian pooling for area smaller than 3x3")
+	end
 	# Subsample upper half
 	square_matrix2 = Float64.(copy(square_matrix))
 	total_rows, total_cols = size(square_matrix)
@@ -378,9 +389,9 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 		total_cols -= 1
 	end
 
-
-	for row = 1:subsamp_size:(total_rows-2)
-		for col = (row+subsamp_size):subsamp_size:total_cols
+	step = subsamp_size-overlap
+	for row = 1:step:(total_rows-2)
+		for col = (row+subsamp_size):step:total_cols
 			r_beg = row
 			r_end = row+subsamp_size-1
 			c_beg = col
@@ -388,11 +399,12 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 
 			if r_end > total_rows || c_end > total_cols
 				size_mismatch_flag = true
-				break
+				continue
 			end
-			square_matrix2[r_beg:r_end,c_beg:c_end] = matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end]; method=method)
+			square_matrix2[r_beg:r_end,c_beg:c_end] =
+						matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end]; method=method,kernel_size=subsamp_size, gauss_sigma=gauss_sigma)
 		end
-		size_mismatch_flag && break
+		size_mismatch_flag && continue
 	end
 
 	# Copy over lower half
@@ -401,6 +413,12 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 			square_matrix2[row,col] = square_matrix2[col,row]
 		end
 	end
+
+	# keep same values on diagonal
+	for row in 1:total_rows
+		square_matrix2[row,row] = square_matrix[row,row]
+	end
+
 	return square_matrix2
 end
 
@@ -496,31 +514,47 @@ function add_random_patch(input_matrix::Matrix; patch_size=1, total_patches=1, l
 	end
 end
 
-function scramble_matrix(in_matrix::Array; k::Int=2)
+function scramble_matrix(in_matrix::Array; k::Int=2, max_iterations=-1)
 	out_matrix = copy(in_matrix)
 	total_rows, total_cols = size(in_matrix)
+	counter = 0
+	if max_iterations < 1
+		max_iterations = (total_cols*(total_cols-1))/2
+	end
 
 	for row = 1:k:total_rows-k
-		@info "row:" row
-		for col=row+2:k:total_cols-k
-			@info "col:" col
-			indices = collect(CartesianIndices((row:row+k-1,col:col+k-1)))
+		# @info "row:" row
+		for col=total_cols:-k:row+1
+			# @info "col:" col
+			if row == col-k+1
+				# @info "shoulbreak"
+				continue
+			end
+			indices = collect(CartesianIndices((row:row+k-1,col-k+1:col)))
 			permut_indices = shuffle(indices)
 			out_matrix[indices] .= in_matrix[permut_indices]
+			counter +=1
+			if counter >= max_iterations
+				break
+			end
+		end
+		if counter >= max_iterations
+			break
 		end
 	end
 	return out_matrix
 end
 
-
-in_matrix = [   1 2 3;
-				5 6 7; 8 9 0]
-scramble_matrix(in_matrix)
-
-sqr_matrix1 = [	0	1	13	4	5	9;
-				1	0	2	14	6	10;
-				13	2	0	3	7	11;
-				4	14	3	0	8	12;
-				5	6	7	8	0	15;
-				9	10	11	12	15	0]
-scramble_matrix(sqr_matrix1)
+#
+# in_matrix = [   1 2 3;
+# 				5 6 7;
+# 				8 9 0]
+# scramble_matrix(in_matrix)
+#
+# in_matrix = [	0	1	13	4	5	9;
+# 				1	0	2	14	6	10;
+# 				13	2	0	3	7	11;
+# 				4	14	3	0	8	12;
+# 				5	6	7	8	0	15;
+# 				9	10	11	12	15	0]
+# scramble_matrix(in_matrix)
