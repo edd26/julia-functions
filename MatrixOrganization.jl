@@ -402,7 +402,7 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 				continue
 			end
 			square_matrix2[r_beg:r_end,c_beg:c_end] =
-						matrix_poling(square_matrix2[r_beg:r_end,c_beg:c_end]; method=method,kernel_size=subsamp_size, gauss_sigma=gauss_sigma)
+						matrix_poling(square_matrix[r_beg:r_end,c_beg:c_end]; method=method,kernel_size=subsamp_size, gauss_sigma=gauss_sigma)
 		end
 		size_mismatch_flag && continue
 	end
