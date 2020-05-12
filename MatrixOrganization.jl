@@ -366,46 +366,74 @@ function subsample_matrix(square_matrix::Array; subsamp_size::Int=2, method="max
 	end
 end
 
-arr = reorganize_matrix(ordered_matrix; subsamp_size=3, method="gauss_pooling", overlap=2, gauss_sigma=4)
-	plot_square_heatmap(arr,5, 64; plt_title="",)
+#= Should the result be overlapping or not? Options:
+	- filter it as a whole image, return diagonal
+	- filter subimages- the problem is that htere will be edge effect at every border of cells
+	- filter subimages and assign midde value to whole patch
+	- filter whole upper diagonal matrix
 
-square_matrix = ordered_matrix
-	subsamp_size=2
-	method="avg_pooling"
-	overlap=0
+Plot gaussian kernel
+Should we care about
+=#
 function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="max_pooling", overlap::Int=0,gauss_sigma=1)
 	if method == "gauss_pooling"
 		(subsamp_size >= 3) || error("Can not do gaussian pooling for area smaller than 3x3")
 	end
+	@info method
 	# Subsample upper half
 	square_matrix2 = Float64.(copy(square_matrix))
 	total_rows, total_cols = size(square_matrix)
 	size_mismatch_flag = false
 
-	if total_rows%2 != 0
-		total_rows -= 1
-	end
-	if total_cols%2 != 0
-		total_cols -= 1
-	end
+	# if total_rows%2 != 0
+	# 	total_rows -= 1
+	# end
+	# if total_cols%2 != 0
+	# 	total_cols -= 1
+	# end
 
-	step = subsamp_size-overlap
-	for row = 1:step:(total_rows-2)
-		for col = (row+subsamp_size):step:total_cols
-			r_beg = row
-			r_end = row+subsamp_size-1
-			c_beg = col
-			c_end = col+subsamp_size-1
+	if method == "gauss_pooling"
+		square_matrix2 = zeros(Int,size(square_matrix))
+		square_matrix2[1:end-1,2:end] = UpperTriangular(square_matrix[1:end-1,2:end])
 
-			if r_end > total_rows || c_end > total_cols
-				size_mismatch_flag = true
-				continue
+		# flip matrix
+		square_matrix3 = zeros(Float64,size(square_matrix))
+		for row in 0:total_rows-1
+			for col in 0:total_cols-1
+				square_matrix3[row+1,col+1] = square_matrix[end-row,end-col]
 			end
-			square_matrix2[r_beg:r_end,c_beg:c_end] =
-						matrix_poling(square_matrix[r_beg:r_end,c_beg:c_end]; method=method,kernel_size=subsamp_size, gauss_sigma=gauss_sigma)
 		end
-		size_mismatch_flag && continue
-	end
+		square_matrix3[1:end-1,:] = square_matrix3[2:end,:]
+		square_matrix3[:,2:end] = square_matrix3[:,1:end-1]
+
+		for row in 1:total_rows
+			for col in 1:row
+				square_matrix2[row,col] = square_matrix3[row,col]
+			end
+		end
+		
+		filtering_kernel = Kernel.gaussian(gauss_sigma)
+		square_matrix2 = imfilter(square_matrix2, filtering_kernel)
+		square_matrix2 .= Int.(floor.(Int,square_matrix2))
+	else
+		step = subsamp_size-overlap
+		for row = 1:step:(total_rows-2)
+			for col = (row+subsamp_size):step:total_cols
+				r_beg = row
+				r_end = row+subsamp_size-1
+				c_beg = col
+				c_end = col+subsamp_size-1
+
+				if r_end > total_rows || c_end > total_cols
+					size_mismatch_flag = true
+					continue
+				end
+				square_matrix2[r_beg:r_end,c_beg:c_end] =
+							matrix_poling(square_matrix[r_beg:r_end,c_beg:c_end]; method=method,kernel_size=subsamp_size, gauss_sigma=gauss_sigma)
+			end # for col
+			size_mismatch_flag && continue
+		end # for rows
+	end # if method
 
 	# Copy over lower half
 	for row in 2:total_rows
