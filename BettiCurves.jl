@@ -258,37 +258,38 @@ end
 # Function taken from: https://github.com/alexyarosh/hyperbolic
 # """
 # To be deleted
-# function bettis_eirene(matr, maxdim;
-# 							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
-#     c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
-#
-#     int_length = maxtime-mintime
-#     step_length= int_length/numofsteps
-#
-#     if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
-# 		@debug "Inf mintime, maxtime or number of steps."
-#         # return [betticurve(c, dim=maxdim) for d=1:maxdim]
-# 		result = vectorize_bettis(c, maxdim, mindim)
-#    end
-#
-#     betts = zeros(numofsteps, maxdim)
-#     # For every dimension compute betti curve
-#     for dim=1:maxdim
-#         bet = betticurve(c, dim=dim)
-#
-#         #for every element in betti curve return betti value if index is positive
-#         for i=1:size(bet,1)
-#             b = bet[i,:]
-#             ind = Int(ceil((b[1]-mintime)/step_length))
-#             if ind > 0
-#                 betts[ind,dim]=b[2]
-#             else
-#                 betts[1,dim]=b[2]
-#             end
-#         end
-#     end
-#     return betts
-# end
+function bettis_eirene(matr, maxdim;
+							mintime=-Inf, maxtime=Inf, numofsteps=Inf, mindim=1)
+    c = eirene(matr, minrad = mintime, maxrad= maxtime, numrad= numofsteps, maxdim=maxdim)
+
+    int_length = maxtime-mintime
+    step_length= int_length/numofsteps
+
+    if (mintime == -Inf) || (maxtime == Inf) || (numofsteps == Inf)
+		@debug "Inf mintime, maxtime or number of steps."
+        # return [betticurve(c, dim=maxdim) for d=1:maxdim]
+		result = vectorize_bettis(c, maxdim, mindim)
+		return result
+   end
+
+    betts = zeros(numofsteps, maxdim)
+    # For every dimension compute betti curve
+    for dim=1:maxdim
+        bet = betticurve(c, dim=dim)
+
+        #for every element in betti curve return betti value if index is positive
+        for i=1:size(bet,1)
+            b = bet[i,:]
+            ind = Int(ceil((b[1]-mintime)/step_length))
+            if ind > 0
+                betts[ind,dim]=b[2]
+            else
+                betts[1,dim]=b[2]
+            end
+        end
+    end
+    return betts
+end
 
 
 # """
@@ -481,7 +482,7 @@ function multiscale_matrix_testing(sample_space_dims = 3,
             pts_rand = [generate_random_point_cloud(sample_space_dim,space_samples) for i=1:maxsim]
             symm_mat_geom = [generate_geometric_matrix(pts_rand[i]') for i=1:maxsim]
             ordered_mat_geom = [get_ordered_matrix(symm_mat_geom[i];
-									assing_same_values=false) for i=1:maxsim]
+									assign_same_values=false) for i=1:maxsim]
 
             # ======================================================================
             # ========================= Do the Betti analysis ======================
