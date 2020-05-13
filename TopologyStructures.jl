@@ -51,30 +51,37 @@ struct ImageTopologyParams
 	pooling_method::String
 	gabor_set::Int
 	overlap::Number
+	gaussian_blurr::Number
 
 	function ImageTopologyParams(;total_bins = 5, max_size_limiter = 200,
 								min_B_dim = 1, max_B_dim = 4,
 								images_set = file_dict[1], file_name = images_set[6],
 	    						gruping = true, sub_img_size = 33, sub_sample_size=2,
-								pooling_method = "avg_pooling", gabor_set = 4, overlap = 0.0)
+								pooling_method = "avg_pooling", gabor_set = 4, overlap = 0.0,
+								gaussian_blurr=0.25)
 
 		new(total_bins, max_size_limiter, min_B_dim, max_B_dim,
 			images_set, file_name, gruping, sub_img_size, sub_sample_size,
-			pooling_method, gabor_set, overlap)
+			pooling_method, gabor_set, overlap, gaussian_blurr)
 	end
 end
 
 function get_params_description(par::ImageTopologyParams)
+	if par.pooling_method == "gauss_pooling"
+		met = "_$(par.pooling_method)$(ceil(Int, par.gaussian_blurr*100))"
+	else
+		met = "_$(par.pooling_method)"
+	end
 	return "maxB_$(par.max_B_dim)"*
 			"_minB_$(par.min_B_dim)"*
 			"_gaborset_$(par.gabor_set)_subimgsize$(par.sub_img_size)"*
 					"_poolingsize_$(par.sub_sample_size)"*
-					"_$(par.pooling_method)"*
+					"$(met)_"*
 					"_overlap_$(Int(par.overlap*10))_"*
 					"file_$(split(par.file_name,'.')[1])"
 end
 
-function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams)
+function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams; get_distances=false)
 	@info "Current img_size" par.sub_img_size
 	@info "Using file: " par.file_name
 	@debug "Used params: " par.total_bins, par.gabor_set
@@ -86,7 +93,8 @@ function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams)
 
 	# =============================== Get image ================================
 	file_n = split(par.file_name, ".")[1]
-	img1_gray = Gray.(load("img/"*par.file_name))
+	loaded_img = load("img/"*par.file_name)
+	img1_gray = Gray.()
 	img_size = size(img1_gray)
 
 	# ================================ Process Image =======================
@@ -116,12 +124,18 @@ function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams)
 	if met_par.lower_ord_mat_resolution
 		ordered_matrix = lower_ordmat_resolution(ordered_matrix, par.total_bins)
 	end
-	return ordered_matrix
+	if get_distances
+		return dist_mat
+	else
+		return ordered_matrix
+	end
 end
 
 # ===
 struct TopologyMatrixSet
     file_name::String
+
+	# 2 below are not necessary, if params are includede in this structure
 	sub_sample_size::Int
 	pooling_method::String
 
@@ -139,18 +153,29 @@ struct TopologyMatrixSet
 	description_vector
 	ranks_collection
 
-	function TopologyMatrixSet(input_matrix::Array;description_vector)
+	params::ImageTopologyParams
+
+	function TopologyMatrixSet(input_matrix::Array, params::ImageTopologyParams
+								; description_vector)
 		# TODO add parameter which describes which methods should be used
-		@warn "Using constant in structure definition- TODO: change to variable"
-	    file_name = images_set[6]
-		sub_sample_size = 2
-		pooling_method = "avg_pooling"
+		# @warn "Using constant in structure definition- TODO: change to variable"
+	    # file_name = images_set[6]
+		# sub_sample_size = 2
+		# pooling_method = "avg_pooling"
 		# ===
+		file_name = params.file_name
 
 		reordered_matrix, reordered_map_ref =
 	 			order_max_vals_near_diagonal2(input_matrix; do_final_plot=false, do_all_plots = false);
-		pooled_matrix   	= reorganize_matrix(input_matrix; subsamp_size=sub_sample_size, method=pooling_method)
-		pooled_reord_matrix = reorganize_matrix(reordered_matrix; subsamp_size=sub_sample_size, method=pooling_method)
+
+		pooled_matrix   	= reorganize_matrix(input_matrix; subsamp_size=params.sub_sample_size, method=params.pooling_method, gauss_sigma=params.gaussian_blurr)
+		pooled_reord_matrix = reorganize_matrix(reordered_matrix; subsamp_size=params.sub_sample_size, method=params.pooling_method, gauss_sigma=params.gaussian_blurr)
+		# =
+		# gaussian_blurr = g_blurr
+		# used_kernel = Kernel.gaussian(gaussian_blurr)
+		# pooled_matrix   	= ceil.(Int,imfilter(input_matrix, used_kernel))
+		# pooled_reord_matrix = ceil.(Int,imfilter(reordered_matrix, used_kernel))
+		# =
 
 		renum_pooled_orig_matrix  = get_ordered_matrix(pooled_matrix; assign_same_values=true)
 		renum_pooled_reord_matrix = get_ordered_matrix(pooled_reord_matrix; assign_same_values=true)
@@ -170,13 +195,13 @@ struct TopologyMatrixSet
 			ranks_collection[mat] = rank(matrix_collection[mat])
 		end
 
-		new(file_name, sub_sample_size,  pooling_method, input_matrix,
+		new(file_name, params.sub_sample_size,  params.pooling_method, input_matrix,
 			reordered_matrix,
 			# reordered_map_ref,
 			pooled_matrix, pooled_reord_matrix,
 			renum_pooled_orig_matrix, renum_pooled_reord_matrix,
 			reordered_renum_pooled_orig_matrix,
-			matrix_collection, description_vector, ranks_collection)
+			matrix_collection, description_vector, ranks_collection, params)
 	end
 end
 
@@ -188,11 +213,11 @@ struct TopologyMatrixBettisSet
 
 	function TopologyMatrixBettisSet(top_mat_set::TopologyMatrixSet;min_B_dim=1, max_B_dim=3)
 		bettis_collection = Any[]
-		for matrix in top_mat_set.matrix_collection
+		for matrix = top_mat_set.matrix_collection
  		   # ===
  		   # Persistent homology
- 		   eirene_geom = eirene(matrix,maxdim=max_B_dim,model="vr")
- 		   bett_geom = get_bettis(eirene_geom, max_B_dim, min_dim = min_B_dim)
+ 		   eirene_geom = eirene(matrix,maxdim=top_mat_set.params.max_B_dim,model="vr")
+ 		   bett_geom = get_bettis(eirene_geom, top_mat_set.params.max_B_dim, min_dim = top_mat_set.params.min_B_dim)
 		   push!(bettis_collection,bett_geom)
 	   end
 	   new(min_B_dim, max_B_dim, bettis_collection)
