@@ -243,6 +243,11 @@ function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
     centers = CartesianIndex[]
 
     start_ind = ceil(Int, sub_img_size/2)
+    if 2*start_ind == sub_img_size
+        start_ind +=1
+    end
+
+
     if overlap>0 && overlap<1
         overlap = floor(Int, sub_img_size*overlap)
     end
@@ -516,7 +521,7 @@ function rearrange_filters_arr(im_filter; showing_number=-1, columns=-1)
 end
 
 
-
+# TODO remove img size from arguments
 function get_local_correlations(method::String, img, img_size, sub_img_size;
                                                         masks = 0,
                                                         points_per_dim=1,
@@ -531,7 +536,7 @@ function get_local_correlations(method::String, img, img_size, sub_img_size;
                                                             sub_img_size, shift)
 
     elseif  method == "gradient_gabor"
-        @debug "local gradient gabor comparison"
+        @info "local gradient gabor comparison"
         centers = get_img_local_centers(img_size, sub_img_size)
         local_correlations = get_local_img_correlations(img, centers, masks;
                                                     with_gradient = with_grad)
