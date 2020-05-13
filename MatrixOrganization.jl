@@ -397,24 +397,115 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 		square_matrix2[1:end-1,2:end] = UpperTriangular(square_matrix[1:end-1,2:end])
 
 		# flip matrix
-		square_matrix3 = zeros(Float64,size(square_matrix))
-		for row in 0:total_rows-1
-			for col in 0:total_cols-1
-				square_matrix3[row+1,col+1] = square_matrix[end-row,end-col]
+		do_matrix_flip = false
+		if do_matrix_flip
+			square_matrix3 = zeros(Float64,size(square_matrix))
+			for row in 0:total_rows-1
+				for col in 0:total_cols-1
+					square_matrix3[row+1,col+1] = square_matrix[end-row,end-col]
+				end
 			end
+			square_matrix3[1:end-1,:] = square_matrix3[2:end,:]
+			square_matrix3[:,2:end] = square_matrix3[:,1:end-1]
+		else
+			square_matrix3 = copy(square_matrix2)
 		end
-		square_matrix3[1:end-1,:] = square_matrix3[2:end,:]
-		square_matrix3[:,2:end] = square_matrix3[:,1:end-1]
 
 		for row in 1:total_rows
 			for col in 1:row
 				square_matrix2[row,col] = square_matrix3[row,col]
 			end
 		end
-		
+
 		filtering_kernel = Kernel.gaussian(gauss_sigma)
 		square_matrix2 = imfilter(square_matrix2, filtering_kernel)
 		square_matrix2 .= Int.(floor.(Int,square_matrix2))
+	elseif method == "row_pooling"
+		function gauss_func(σ,len;μ=0)
+			maxv = len÷2
+			 minv= -len÷2
+			if len%2 == 0
+				maxv-=1
+			end
+			x = collect(minv:1:maxv)
+			return exp.(-(((x.-μ)./σ)./2).^2)./(σ*sqrt(2π))
+		end
+		# Take 'subsamp_size'in total in horizontal and in vertical line from
+		# current matrix element
+		# subsamp_size = 5
+		val_range = subsamp_size÷2
+		r = (subsamp_size÷2)*2
+		# total_rows = 266
+		# total_cols = 266
+		# row = 3
+
+		for row = 1:1:(total_rows-1)
+			for col = (row+1):1:total_cols
+				if row < r  &&  col <= r
+					row_range = row - 1
+					col_range = val_range + (val_range-row_range÷2)
+				else
+					row_range = val_range
+				end
+				if row > total_rows-r  &&  col >= total_cols-r
+					col_range = total_cols - row -1
+					row_range = val_range + (val_range-col_range)
+				else
+					col_range = val_range
+				end
+
+				r_beg = row - row_range
+				r_end = row + row_range
+				c_beg = col - col_range
+				c_end = col + col_range
+
+				# if r_beg < 1 && r_end > total_rows
+				if r_beg < 1
+					r_end += abs(r_beg)+1
+					r_beg = 1
+				end
+				if r_end > col
+					r_beg -= abs(r_end-col)
+					if r_beg <1
+						r_beg=1
+					end
+
+					r_end = col-1
+				end
+				# end # if both
+
+				# if c_beg < row+1 && c_end > total_cols
+				if c_beg < row+1
+					c_end += abs(c_beg-(row+1))
+					c_beg = row+1
+				end
+				if c_end > total_cols
+					c_beg -= abs(total_rows-c_end)
+					c_end = total_cols
+				end
+				vrange = r_beg:r_end
+				try
+					square_matrix2[row,col] += sum(
+												square_matrix[vrange,col]
+												.* gauss_func(gauss_sigma,length(vrange))
+												)
+												vrange = c_beg:c_end
+					square_matrix2[row,col] += sum(
+													square_matrix[row,c_beg:c_end] .*
+													 gauss_func(gauss_sigma,length(vrange))
+													)
+				catch e
+					@error "Failed to compute row pooling"
+					@error "row" row
+					@error "col" col
+					square_matrix2[row,col] = 0
+					break
+					# error(e)
+				end
+
+			end # for col
+		end # for rows
+
 	else
 		step = subsamp_size-overlap
 		for row = 1:step:(total_rows-2)
