@@ -94,7 +94,7 @@ function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams; 
 	# =============================== Get image ================================
 	file_n = split(par.file_name, ".")[1]
 	loaded_img = load("img/"*par.file_name)
-	img1_gray = Gray.()
+	img1_gray = Gray.(loaded_img)
 	img_size = size(img1_gray)
 
 	# ================================ Process Image =======================
