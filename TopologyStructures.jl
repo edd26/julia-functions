@@ -43,8 +43,8 @@ struct ImageTopologyParams
 	max_size_limiter::Int
 	min_B_dim::Int
 	max_B_dim::Int
-	images_set::Vector{String}
 	file_name::String
+	img_path::String
 	gruping::Bool
 	sub_img_size::Int
 	sub_sample_size::Int
@@ -55,13 +55,13 @@ struct ImageTopologyParams
 
 	function ImageTopologyParams(;total_bins = 5, max_size_limiter = 200,
 								min_B_dim = 1, max_B_dim = 4,
-								images_set = file_dict[1], file_name = images_set[6],
+								file_name = "", img_path="img/",
 	    						gruping = true, sub_img_size = 33, sub_sample_size=2,
 								pooling_method = "avg_pooling", gabor_set = 4, overlap = 0.0,
 								gaussian_blurr=0.25)
 
 		new(total_bins, max_size_limiter, min_B_dim, max_B_dim,
-			images_set, file_name, gruping, sub_img_size, sub_sample_size,
+			file_name, img_path, gruping, sub_img_size, sub_sample_size,
 			pooling_method, gabor_set, overlap, gaussian_blurr)
 	end
 end
@@ -93,7 +93,7 @@ function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams; 
 
 	# =============================== Get image ================================
 	file_n = split(par.file_name, ".")[1]
-	loaded_img = load("img/"*par.file_name)
+	loaded_img = load(par.img_path*par.file_name)
 	img1_gray = Gray.(loaded_img)
 	img_size = size(img1_gray)
 
