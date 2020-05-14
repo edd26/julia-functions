@@ -72,13 +72,15 @@ function get_params_description(par::ImageTopologyParams)
 	else
 		met = "_$(par.pooling_method)"
 	end
-	return "maxB_$(par.max_B_dim)"*
+
+	return "file_$(split(par.file_name,'.')[1])"*
+            "_subimgsize$(par.sub_img_size)"*
+            "_maxB_$(par.max_B_dim)"*
 			"_minB_$(par.min_B_dim)"*
-			"_gaborset_$(par.gabor_set)_subimgsize$(par.sub_img_size)"*
-					"_poolingsize_$(par.sub_sample_size)"*
-					"$(met)_"*
-					"_overlap_$(Int(par.overlap*10))_"*
-					"file_$(split(par.file_name,'.')[1])"
+			"_gaborset_$(par.gabor_set)"*
+			"_poolingsize_$(par.sub_sample_size)"*
+            "$(met)_"*
+			"_overlap_$(Int(par.overlap*10))_"
 end
 
 function get_ord_mat_from_img(par::ImageTopologyParams, met_par::MethodsParams; get_distances=false)
