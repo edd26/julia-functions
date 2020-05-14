@@ -143,14 +143,14 @@ end
 
 
 """
-   get_all_plots_from_set(orig_matrix::TopologyMatrixSet, img1_gray::Array; name_prefix="")
+   get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
 
 Takes a collection of matrix computed for topological analysis and creates set
 	of their heatmaps and related Betti curves.
 
 
 """
-function get_all_plots_from_set(orig_matrix::TopologyMatrixSet, img1_gray::Array; name_prefix="")
+function get_all_plots_from_set(orig_matrix::TopologyMatrixSet; name_prefix="")
 	# ===
 	# Get heatmaps
 	original_heatmaps_set 	= TopologyMatrixHeatmapsSet(orig_matrix)
@@ -179,14 +179,22 @@ function get_all_plots_from_set(orig_matrix::TopologyMatrixSet, img1_gray::Array
 		push!(common_plots_set, common_plot1)
 	end
 
-	image_plot = plot(img1_gray, legend = false);
+	# load image
+	file_path = orig_matrix.params.img_path*orig_matrix.params.file_name
+	if isfile(file_path)
+		img1_gray = Gray.(load(file_path))
+		additional_plot = plot(img1_gray, legend = false);
+	else
+		# TODO Change empty plot for plot with properties
+		additional_plot = plot(legend = false);
+	end
 
 	parameters_list_plot = plot()
-	first_plot = plot(image_plot, parameters_list_plot)
+	first_plot = plot(additional_plot, parameters_list_plot)
 
 	plt_size = size(common_plots_set,1)
 
-	all_plot1 = plot(image_plot,
+	all_plot1 = plot(additional_plot,
 					common_plots_set[1],		# original matrix
  					common_plots_set[2],	# original reordered- highest values located next to diagonal
 					common_plots_set[3],	# max pooling of values in subsquares, original matrirx
