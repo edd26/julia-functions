@@ -397,7 +397,7 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 		square_matrix2[1:end-1,2:end] = UpperTriangular(square_matrix[1:end-1,2:end])
 
 		# flip matrix
-		do_matrix_flip = false
+		do_matrix_flip = true
 		if do_matrix_flip
 			square_matrix3 = zeros(Float64,size(square_matrix))
 			for row in 0:total_rows-1
@@ -409,6 +409,8 @@ function reorganize_matrix(square_matrix::Array; subsamp_size::Int=2, method="ma
 			square_matrix3[:,2:end] = square_matrix3[:,1:end-1]
 		else
 			square_matrix3 = copy(square_matrix2)
+			square_matrix3[1:end-1,:] = square_matrix2[2:end,:]
+			square_matrix3[:,1:end-1] = square_matrix2[:,2:end]
 		end
 
 		for row in 1:total_rows
