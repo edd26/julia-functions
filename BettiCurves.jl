@@ -620,7 +620,7 @@ function get_bettis_from_image2(img_name; file_path="",
     @warn "Eirene may have trobules with big matrices/images."
   end
 
-  ordered_matrix = get_ordered_matrix(C_ij; assing_same_values=false)
+  ordered_matrix = get_ordered_matrix(C_ij; assign_same_values=false)
 
 
   # ==============================================================================
@@ -633,7 +633,7 @@ function get_bettis_from_image2(img_name; file_path="",
 
   if plot_heatmaps
 
-    full_ordered_matrix= get_ordered_matrix(C_ij; assing_same_values=false)
+    full_ordered_matrix= get_ordered_matrix(C_ij; assign_same_values=false)
     heat_map2 = plot_square_heatmap(full_ordered_matrix, 10, img_size;
             plt_title = "Order matrix of $(file_n)")
 
