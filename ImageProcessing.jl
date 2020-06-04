@@ -146,27 +146,32 @@ function get_local_img_correlations(img, centers, masks::Vector; with_gradient=f
         img = get_img_gradient(img)
     end
 
-    position = 1;
-    for index = centers
+    # position = 1;
+    # for index = centers
+    for pos = 1:length(centers)
+		# global position
+		index = centers[pos]
+
         c_x = index[1]
         c_y = index[2]
         c_x_range = (c_x-half_range):(c_x+half_range)
         c_y_range = (c_y-half_range):(c_y+half_range)
 
         center = img[c_x_range, c_y_range]
-        mask_pos = 1
-        for mask in masks
-
+        # mask_pos = 1
+        # for mask in masks
+		for mask_pos = 1:length(masks)
+			mask = masks[mask_pos]
             corelation = center .* mask
 
             corelation = sum(corelation)
-            local_correlation[mask_pos, position] += corelation
-            local_correlation[mask_pos, position] /= (sub_img_size^2)
+            local_correlation[mask_pos, pos] += corelation
+            local_correlation[mask_pos, pos] /= (sub_img_size^2)
             # local_correlation[position, mask_pos ] =  sum(imfilter(center, mask))/(sub_img_size^2)
-            mask_pos +=1
+            # mask_pos +=1
         end
 
-        position += 1;
+        # position += 1;
     end
 
     return local_correlation
@@ -527,7 +532,8 @@ function get_local_correlations(method::String, img, img_size, sub_img_size;
                                                         points_per_dim=1,
                                                         shift=0,
                                                         with_grad = true,
-                                                        overlap = 0)
+                                                        overlap = 0,
+                                                        use_square=true)
     if method == "correlation"
         @debug "local correlation"
         centers = get_local_img_centers(points_per_dim, img_size, shift,
@@ -543,7 +549,7 @@ function get_local_correlations(method::String, img, img_size, sub_img_size;
 
     elseif  method == "gabor"
         @debug "local gabor comparison"
-        centers = get_img_local_centers(img_size, sub_img_size; overlap = overlap)
+        centers = get_img_local_centers(img_size, sub_img_size; overlap = overlap, use_square=use_square)
         local_correlations = get_local_img_correlations(img, centers, masks )
 
     elseif  method == "gradient"
