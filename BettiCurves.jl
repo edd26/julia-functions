@@ -620,7 +620,7 @@ function get_bettis_from_image2(img_name; file_path="",
     @warn "Eirene may have trobules with big matrices/images."
   end
 
-  ordered_matrix = get_ordered_matrix(C_ij; assing_same_values=false)
+  ordered_matrix = get_ordered_matrix(C_ij; assign_same_values=false)
 
 
   # ==============================================================================
