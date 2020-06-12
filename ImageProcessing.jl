@@ -135,7 +135,8 @@ around coordinates stored in `centres`.
 function get_local_img_correlations(img, centers, masks::Vector; with_gradient=false)
     masks_num = length(masks)
     sub_img_size = size(masks[1],1)
-    half_size = ceil(Int,(sub_img_size-1)/2)
+	# half_size = ceil(Int,(sub_img_size-1)/2)
+    half_size = (sub_img_size)÷2
     half_range = half_size
     h, w = size(img)
     local_correlation = zeros(masks_num, size(centers,1) )
@@ -240,7 +241,7 @@ it is set to zero, but can be any pixel value smaller that @sub_img_size. If
 function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
                                 overlap=0)
 
-    @assert sub_img_size < findmin(img_size)[1] "@sub_img_size is bigger than image!"
+    @assert sub_img_size <= findmin(img_size)[1] "@sub_img_size is bigger than image!"
     @assert sub_img_size > 0 "sub_img_size must be positive number"
     @assert overlap<=sub_img_size "The overlap is biger than subimage size!"
     @assert overlap >= 0 "overlap must be positive"
@@ -265,11 +266,19 @@ function get_img_local_centers(img_size, sub_img_size=10; use_square=true,
         size_h = img_size[2]
     end
 
-    last_ind_v = size_v - start_ind
+    last_ind_v = size_v - start_ind # TODO check if it is starting at 1st row, not second
     last_ind_h = size_h - start_ind
 
     val_range_v = floor.(Int, range(start_ind, step=sub_img_size-overlap,  stop=last_ind_v))
     val_range_h = floor.(Int, range(start_ind, step=sub_img_size-overlap,  stop=last_ind_h))
+
+	if isempty(val_range_v) && size_v <= sub_img_size
+		val_range_v = [start_ind]
+	end
+
+	if isempty(val_range_h) && size_h <= sub_img_size
+		val_range_h = [start_ind]
+	end
 
     num_indexes_v = size(val_range_v,1)
     num_indexes_h = size(val_range_h,1)
