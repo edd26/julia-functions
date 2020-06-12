@@ -266,7 +266,7 @@ struct BettiPlot
 	betti_plot
 
 	function BettiPlot(in_array; min_B_dim=1)
-		betti_plot = plot_bettis2(in_array, "", legend_on=true, min_dim=min_B_dim);
+		betti_plot = plot_bettis2(in_array, "", legend_on=false, min_dim=min_B_dim);
 		xlabel!("Steps");
 
 		new(betti_plot)
