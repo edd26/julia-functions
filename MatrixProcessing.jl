@@ -130,7 +130,8 @@ julia> get_ordered_matrix(b; assign_same_values=true)
 1  2  1  0
 ```
 """
-function get_ordered_matrix(input_matrix; assign_same_values=false,
+function get_ordered_matrix(input_matrix;
+                                assign_same_values=false,
                                 force_symmetry=false,
                                 small_dist_grouping=false,
                                 min_dist=1e-16,
