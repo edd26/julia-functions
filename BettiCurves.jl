@@ -663,7 +663,7 @@ function plot_and_save_bettis2(eirene_results, plot_title::String,
 								extend_title=true, do_normalise=true, min_dim=0,
 								max_dim=3, legend_on=true)
 
-    bettis = get_bettis(eirene_results, max_dim);
+    bettis = get_bettis(eirene_results, max_dim, min_dim=min_dim);
     norm_bettis = normalise_bettis(bettis);
     plot_ref = plot_bettis2(bettis, plot_title, legend_on=legend_on, min_dim=min_dim);
 
@@ -698,7 +698,7 @@ function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size
 	else
     	colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
 	end
-	for c =  [collect(11:17);]
+	for c =  [collect(11:25);]
 		push!(colors_set, cur_colors2[c])
 	end
 
@@ -707,16 +707,15 @@ function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size
     for p = 1:(max_dim)
 		# @info p
         plot!(bettis[p][:,1], bettis[p][:,2],
-											label="beta_$(all_dims[p])",
+											label="β$(all_dims[p])",
 											# label="a",
 													lc=colors_set[p],
-													linewidth = 2,);
+													linewidth = 2,)
         if legend_on
             plot!(legend=true)
         else
             plot!(legend=false)
         end
-
     end
     ylabel!("Number of cycles")
 	xlabel!("Edge density")
