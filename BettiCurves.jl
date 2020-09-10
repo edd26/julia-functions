@@ -685,22 +685,33 @@ function plot_and_save_bettis2(eirene_results, plot_title::String,
 end
 
 
+"""
+    function get_bettis_color_palete()
+
+Generates vector with colours used for Betti plots.
+"""
+function get_bettis_color_palete(;min_dim=1)
+    cur_colors = get_color_palette(:auto, 17)
+    cur_colors2 = get_color_palette(:cyclic1, 40)
+    if min_dim == 0
+        colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
+    else
+        colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
+    end
+    for c =  [collect(11:25);]
+        push!(colors_set, cur_colors2[c])
+    end
+
+    return colors_set
+end
+
 function plot_bettis2(bettis, plot_title; legend_on=true, min_dim=1)#; plot_size = (width=1200, height=800),
                                         #                        base_dpi = 500)
 	max_dim = size(bettis,1)
 	all_dims = min_dim:max_dim
 
 	# set_default_plotting_params()
-    cur_colors = get_color_palette(:auto, 17)
-	cur_colors2 = get_color_palette(:cyclic1, 40)
-	if min_dim == 0
-		colors_set =  [cur_colors[3], cur_colors[5], [:red], cur_colors[1]] #cur_colors[7],
-	else
-    	colors_set =  [cur_colors[5], [:red], cur_colors[1], cur_colors[14]]
-	end
-	for c =  [collect(11:25);]
-		push!(colors_set, cur_colors2[c])
-	end
+	colors_set = get_bettis_color_palete()
 
     # final_title = "Eirene betti curves, "*plot_title
 	plot_ref = plot(title=plot_title);
